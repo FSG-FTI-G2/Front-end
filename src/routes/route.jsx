@@ -3,6 +3,7 @@ import Section from "../components/layout/Section";
 // Icons
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { FaBrain } from "react-icons/fa";
+import LoginLayout from "../pages/loginPage";
 
 export const routes = [
   {
@@ -11,7 +12,7 @@ export const routes = [
   },
   {
     path: "/login",
-    element: <div>Login Page</div>,
+    element: <LoginLayout />,
   },
   {
     path: "/dashboard",

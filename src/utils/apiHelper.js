@@ -1,7 +1,17 @@
 import axios from "axios";
 import { baseUrl } from "./constants";
-import { formatErrorResponse } from "./utils";
 import { getCookie } from "./cookie";
+
+// Type definitions
+/**
+ * @template T
+ * @typedef {Object} ResponseData
+ * @property {string} code - The status of the response.
+ * @property {string} message - The message of the response.
+ * @property {T|null} data - The data returned in the response.
+ * @property {Object|null} error - The error message, if any.
+ * @property {number} timestamp - The timestamp of the response.
+ */
 
 const api = axios.create({
   baseURL: baseUrl,
@@ -12,6 +22,9 @@ const api = axios.create({
 });
 
 const apiHelper = {
+  /**
+   * @param {string} token Token to be added to the request header
+   */
   addToken: (token) => {
     api.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${token}`;
@@ -19,15 +32,26 @@ const apiHelper = {
     });
   },
 
+  /**
+   * @param {string} url URL to make the request
+   * @param {object} params Query parameters to be sent with the
+   * @returns {Promise<ResponseData<T>>} The response data
+   */
   get: async (url, params = {}) => {
     try {
       const response = await api.get(url, { params });
       return response.data;
     } catch (error) {
-      return formatErrorResponse(error);
+      console.error("🐞 Error: ", error);
     }
   },
 
+  /**
+   * @param {string} url URL to make the request
+   * @param {Object} data Object to be sent in the request body
+   * @param {Object} config Additional configurations for the request
+   * @returns {Promise<ResponseData<T>>} The response data
+   */
   post: async (url, data = {}, config = {}) => {
     try {
       const response = await api.post(url, data, {
@@ -36,10 +60,16 @@ const apiHelper = {
       });
       return response.data;
     } catch (error) {
-      return formatErrorResponse(error);
+      console.error("🐞 Error: ", error);
     }
   },
 
+  /**
+   * @param {string} url URL to make the request
+   * @param {FormData} formData FormData object to be sent in the request body
+   * @param {Object} config Additional configurations for the request
+   * @returns {Promise<ResponseData<T>>} The response data
+   */
   postFormData: async (url, formData, config = {}) => {
     try {
       const response = await api.post(url, formData, {
@@ -48,10 +78,16 @@ const apiHelper = {
       });
       return response.data;
     } catch (error) {
-      return formatErrorResponse(error);
+      console.error("🐞 Error: ", error);
     }
   },
 
+  /**
+   * @param {string} url URL to make the request
+   * @param {Object} data Object to be sent in the request body
+   * @param {Object} config Additional configurations for the request
+   * @returns {Promise<ResponseData<T>>} The response data
+   */
   put: async (url, data = {}, config = {}) => {
     try {
       const response = await api.put(url, data, {
@@ -60,16 +96,21 @@ const apiHelper = {
       });
       return response.data;
     } catch (error) {
-      return formatErrorResponse(error);
+      console.error("🐞 Error: ", error);
     }
   },
 
+  /**
+   * @param {string} url URL to make the request
+   * @param {Object} config Additional configurations for the request
+   * @returns {Promise<ResponseData<T>>} The response data
+   */
   delete: async (url, config = {}) => {
     try {
       const response = await api.delete(url, { ...config });
       return response.data;
     } catch (error) {
-      return formatErrorResponse(error);
+      console.error("🐞 Error: ", error);
     }
   },
 };
