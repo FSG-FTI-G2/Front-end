@@ -1,3 +1,10 @@
+export const baseUrl = "http://localhost:7860";
+
+export const apiUrls = {
+  login: "/auth/login",
+  getCurrentUser: "/auth/me",
+};
+
 export const appColors = {
   // Base color
   backBackground: "#F5F7F8",

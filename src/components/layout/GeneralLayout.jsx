@@ -4,6 +4,7 @@ import { containerStyle } from "../styles/containerStyle";
 import { appColors } from "../../utils/constants";
 import { useDisclosure } from "@mantine/hooks";
 import { routes } from "../../routes/route";
+import { getCurrentUser } from "../../apis/auth";
 import useGlobalStore from "../../context/global";
 
 export default function GeneralLayout() {
@@ -14,6 +15,18 @@ export default function GeneralLayout() {
     (route) => route.path == "/dashboard"
   )[0].children;
   const appTitle = useGlobalStore((state) => state.appTitle);
+  const setUser = useGlobalStore((state) => state.setUser);
+
+  useEffect(() => {
+    getCurrentUser({
+      onSuccess: (user) => {
+        setUser(user);
+      },
+      onFail: () => {
+        navigator("/login");
+      },
+    });
+  }, []);
 
   return (
     <Flex direction="column" h="100vh" bg={appColors.backBackground}>
