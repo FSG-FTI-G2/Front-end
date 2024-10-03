@@ -43,6 +43,7 @@ const apiHelper = {
       return response.data;
     } catch (error) {
       console.error("🐞 Error: ", error);
+      return error.response.data;
     }
   },
 
@@ -61,6 +62,7 @@ const apiHelper = {
       return response.data;
     } catch (error) {
       console.error("🐞 Error: ", error);
+      return error.response.data;
     }
   },
 
@@ -79,6 +81,7 @@ const apiHelper = {
       return response.data;
     } catch (error) {
       console.error("🐞 Error: ", error);
+      return error.response.data;
     }
   },
 
@@ -97,6 +100,7 @@ const apiHelper = {
       return response.data;
     } catch (error) {
       console.error("🐞 Error: ", error);
+      return error.response.data;
     }
   },
 
@@ -111,6 +115,7 @@ const apiHelper = {
       return response.data;
     } catch (error) {
       console.error("🐞 Error: ", error);
+      return error.response.data;
     }
   },
 };
