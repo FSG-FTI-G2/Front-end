@@ -1,12 +1,22 @@
-import { Avatar, Burger, Drawer, Flex, NavLink, Title } from "@mantine/core";
+import {
+  Avatar,
+  Burger,
+  Drawer,
+  Flex,
+  NavLink,
+  Menu,
+  Skeleton,
+  Title,
+} from "@mantine/core";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { containerStyle } from "../styles/containerStyle";
 import { appColors } from "../../utils/constants";
 import { useDisclosure } from "@mantine/hooks";
 import { routes } from "../../routes/route";
-import { getCurrentUser } from "../../apis/auth";
+import { getCurrentUser, logout } from "../../apis/auth";
 import useGlobalStore from "../../context/global";
 import { useEffect } from "react";
+import { IoIosLogOut } from "react-icons/io";
 
 export default function GeneralLayout() {
   const [opened, { toggle, close }] = useDisclosure();
@@ -16,7 +26,13 @@ export default function GeneralLayout() {
     (route) => route.path == "/dashboard"
   )[0].children;
   const appTitle = useGlobalStore((state) => state.appTitle);
+  const user = useGlobalStore((state) => state.user);
   const setUser = useGlobalStore((state) => state.setUser);
+
+  function handleLogout() {
+    logout();
+    navigator("/login");
+  }
 
   useEffect(() => {
     getCurrentUser({
@@ -47,7 +63,27 @@ export default function GeneralLayout() {
             <Title order={4}>{appTitle}</Title>
           </Flex>
           <Flex gap={16}>
-            <Avatar>Ad</Avatar>
+            {user ? (
+              <Menu width={200} position="bottom-end">
+                <Menu.Target>
+                  <Avatar>{user.username.slice(0, 2)}</Avatar>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item>
+                    <Title order={5}>{user.name || user.username}</Title>
+                  </Menu.Item>
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IoIosLogOut />}
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            ) : (
+              <Skeleton height={38} width={38} radius="xl" />
+            )}
           </Flex>
           <Drawer
             size={250}

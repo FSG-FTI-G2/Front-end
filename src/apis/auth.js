@@ -1,6 +1,6 @@
 import apiHelper from "../utils/apiHelper";
 import { apiUrls } from "../utils/constants";
-import { setCookie } from "../utils/cookie";
+import { removeCookie, setCookie } from "../utils/cookie";
 
 /**
  * @template T
@@ -55,4 +55,9 @@ export async function getCurrentUser({ onSuccess, onFail }) {
   } else {
     onFail(response.message);
   }
+}
+
+export async function logout() {
+  removeCookie("token");
+  apiHelper.removeToken();
 }

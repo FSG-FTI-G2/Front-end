@@ -33,6 +33,16 @@ const apiHelper = {
   },
 
   /**
+   * @param {string} token Token to be removed from the request header
+   */
+  removeToken: () => {
+    api.interceptors.request.use((config) => {
+      delete config.headers.Authorization;
+      return config;
+    });
+  },
+
+  /**
    * @param {string} url URL to make the request
    * @param {object} params Query parameters to be sent with the
    * @returns {Promise<ResponseData<T>>} The response data
