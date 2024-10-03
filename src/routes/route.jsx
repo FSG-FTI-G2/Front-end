@@ -4,6 +4,7 @@ import Section from "../components/layout/Section";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { FaBrain } from "react-icons/fa";
 import LoginLayout from "../pages/loginPage";
+import UploadFileSection from "../pages/chatPage/UploadFile";
 
 export const routes = [
   {
@@ -23,7 +24,7 @@ export const routes = [
         element: (
           <>
             <Section>
-              <div>Document</div>
+              <UploadFileSection />
             </Section>
             <Section>
               <div>Chat with AI</div>

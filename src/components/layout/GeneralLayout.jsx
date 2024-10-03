@@ -46,8 +46,8 @@ export default function GeneralLayout() {
   }, []);
 
   return (
-    <Flex direction="column" h="100vh" bg={appColors.backBackground}>
-      <Flex px={20} pt={20}>
+    <Flex direction="column" h="100%" bg={appColors.backBackground}>
+      <Flex px={10} pt={10}>
         <Flex
           w="100%"
           px={25}
@@ -88,7 +88,7 @@ export default function GeneralLayout() {
           <Drawer
             size={250}
             offset={8}
-            radius="md"
+            radius="lg"
             opened={opened}
             onClose={close}
           >
@@ -107,7 +107,7 @@ export default function GeneralLayout() {
           </Drawer>
         </Flex>
       </Flex>
-      <Flex p={20} gap={20} flex={1} h="100%">
+      <Flex p={10} gap={10} flex={1} h="calc(100% - 74px)">
         <Outlet />
       </Flex>
     </Flex>
