@@ -23,12 +23,17 @@ import { setCookie } from "../utils/cookie";
  */
 export async function login({ username, password, onSuccess, onFail }) {
   // Create a FormData object
-  const data = new FormData();
-  data.append("username", username);
-  data.append("password", password);
+  const data = {
+    username,
+    password,
+  };
 
   // Make a POST request to the login endpoint
-  const response = await apiHelper.post(apiUrls.login, data);
+  const response = await apiHelper.post(apiUrls.login, data, {
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+    },
+  });
   if (response.code === 200) {
     // Set the token in the cookie
     setCookie("token", response.data?.token);
@@ -43,7 +48,7 @@ export async function login({ username, password, onSuccess, onFail }) {
  * @param {onSuccess} onSuccess
  * @param {onFail} onFail
  */
-export async function getCurrentUser(onSuccess, onFail) {
+export async function getCurrentUser({ onSuccess, onFail }) {
   const response = await apiHelper.get(apiUrls.getCurrentUser);
   if (response.code === 200) {
     onSuccess(response.data);

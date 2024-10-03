@@ -1,4 +1,5 @@
-export const baseUrl = "http://localhost:7860";
+// Localhost URL
+export const baseUrl = "http://localhost:8000/api/v1";
 
 export const apiUrls = {
   login: "/auth/login",

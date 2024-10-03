@@ -6,6 +6,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { routes } from "../../routes/route";
 import { getCurrentUser } from "../../apis/auth";
 import useGlobalStore from "../../context/global";
+import { useEffect } from "react";
 
 export default function GeneralLayout() {
   const [opened, { toggle, close }] = useDisclosure();
