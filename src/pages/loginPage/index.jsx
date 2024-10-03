@@ -10,7 +10,6 @@ import { notifications } from "@mantine/notifications";
 
 export default function LoginLayout() {
   const [isButtonLoading, setIsButtonLoading] = useState(false);
-  const setUser = useGlobalStore((state) => state.setUser);
   const navigator = useNavigate();
   const form = useForm({
     initialValues: {
