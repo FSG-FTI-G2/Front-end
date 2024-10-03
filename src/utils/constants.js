@@ -13,6 +13,7 @@ export const appColors = {
   darkGrey: "#ADB5BD",
   grey: "#CED4DA",
   lightGrey: "#F1F3F5",
+  white: "#FFFFFF",
 
   // File colors
   pdfIndicator: "#C7253E",
@@ -26,4 +27,23 @@ export const appColors = {
   statusProcessing: "#4379F2",
   statusSuccess: "#347928",
   statusError: "#C7253E",
+};
+
+export const fileAcceptance =
+  "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain";
+
+export const gridBreakpoints = {
+  xs: "600px",
+  sm: "768px",
+  md: "1024px",
+  lg: "1400px",
+  xl: "1920px",
+};
+
+export const gridSpan = {
+  xs: 12,
+  sm: 12,
+  md: 6,
+  lg: 4,
+  xl: 3,
 };
