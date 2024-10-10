@@ -22,33 +22,40 @@ import { useState } from "react";
 import FileCard from "../../components/FileCard";
 import Empty from "../../components/Empty";
 import { Dropzone } from "@mantine/dropzone";
-
-const mockFiles = [
-  {
-    fileName: "SaoKeTuThien",
-    fileType: "pdf",
-    uploadedDate: "2021-09-01",
-    status: "processing",
-  },
-  {
-    fileName: "SaoKeTuThien",
-    fileType: "docx",
-    uploadedDate: "2021-09-01",
-    status: "success",
-  },
-  {
-    fileName: "SaoKeTuThien",
-    fileType: "txt",
-    uploadedDate: "2021-09-01",
-    status: "error",
-  },
-];
+import { uploadFiles } from "../../apis/upload";
+import useGlobalStore from "../../context/global";
+import { concatFileName } from "../../utils/utilities";
 
 export default function UploadFileSection() {
   const [fileLoading, setFileLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [fileTypeFilter, setFileTypeFilter] = useState([]);
   const [fileStatusFilter, setFileStatusFilter] = useState([]);
+  const files = useGlobalStore((state) => state.files);
+  const setFiles = useGlobalStore((state) => state.setFiles);
+  const setFilesStatus = useGlobalStore((state) => state.setFilesStatus);
+
+  const parseFileObject = (selectedFiles) => {
+    return selectedFiles.map((file) => ({
+      fileName: file.name,
+      fileType: file.name.split(".").pop(),
+      uploadedDate: new Date().toISOString().split("T")[0],
+      status: "pending",
+    }));
+  };
+
+  const handleUploadFiles = (selectedFiles) => {
+    if (selectedFiles.length) {
+      uploadFiles({
+        files: selectedFiles,
+        onProgress: (progressData) => setFilesStatus(progressData.status),
+        onSuccess: (progressData) => {
+          setFilesStatus(progressData.status);
+        },
+        onFail: () => {},
+      });
+    }
+  };
 
   return (
     <Flex direction="column" h="100%">
@@ -57,6 +64,11 @@ export default function UploadFileSection() {
           leftSection={<IoIosCloudUpload />}
           radius="xl"
           accept={fileAcceptance}
+          multiple
+          onChange={(selectedFiles) => {
+            handleUploadFiles(selectedFiles);
+            setFiles([...files, ...parseFileObject(selectedFiles)]);
+          }}
         >
           {(props) => <Button {...props}>Upload</Button>}
         </FileButton>
@@ -126,13 +138,13 @@ export default function UploadFileSection() {
             ))}
           </Grid>
         </ScrollArea>
-      ) : mockFiles?.length ? (
+      ) : files?.length ? (
         <ScrollArea px="md" h="100%" scrollbars="y">
           <Grid w="100%" breakpoints={gridBreakpoints}>
-            {mockFiles.map((file, index) => (
+            {files.map((file, index) => (
               <Grid.Col key={index} span={gridSpan}>
                 <FileCard
-                  fileName={file.fileName}
+                  fileName={concatFileName(file.fileName, 15)}
                   fileType={file.fileType}
                   uploadedDate={file.uploadedDate}
                   status={file.status}
@@ -150,7 +162,7 @@ export default function UploadFileSection() {
       <Dropzone.FullScreen
         active={true}
         accept={fileAcceptance.split(",")}
-        onDrop={(files) => console.log(files)}
+        onDrop={(files) => handleUploadFiles(files)}
       >
         <Dropzone.Accept>
           <Flex direction="column" justify="center" align="center">
