@@ -1,9 +1,10 @@
 // Localhost URL
-export const baseUrl = "http://localhost:8000/api/v1";
+export const baseUrl = "http://localhost:8000";
 
 export const apiUrls = {
-  login: "/auth/login",
-  getCurrentUser: "/auth/me",
+  login: "/api/v1/auth/login",
+  getCurrentUser: "/api/v1/auth/me",
+  uploadFile: "/api/v1/files/",
 };
 
 export const appColors = {
