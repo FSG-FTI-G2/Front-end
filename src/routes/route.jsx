@@ -5,6 +5,7 @@ import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { FaBrain } from "react-icons/fa";
 import LoginLayout from "../pages/loginPage";
 import UploadFileSection from "../pages/chatPage/UploadFile";
+import FilePreview from "../pages/files/Preview";
 
 export const routes = [
   {
@@ -45,6 +46,10 @@ export const routes = [
         icon: <FaBrain />,
       },
     ],
+  },
+  {
+    path: "/file/:id",
+    element: <FilePreview />,
   },
   {
     path: "*",

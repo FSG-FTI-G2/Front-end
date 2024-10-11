@@ -255,19 +255,20 @@ export default function UploadFileSection() {
           onScrollPositionChange={onScrollPositionChange}
         >
           <Grid w="100%" breakpoints={gridBreakpoints}>
-            {files?.length &&
-              files.map((file) => (
-                <Grid.Col key={file.id} span={gridSpan}>
-                  <FileCard
-                    fileName={concatFileName(file.fileName, 15)}
-                    fileType={file.fileType}
-                    uploadedDate={file.uploadedDate}
-                    status={file.status}
-                    thumbnail=""
-                    onDelete={() => handleDeleteFile(file.id)}
-                  />
-                </Grid.Col>
-              ))}
+            {files?.length
+              ? files.map((file) => (
+                  <Grid.Col key={file.id} span={gridSpan}>
+                    <FileCard
+                      fileName={concatFileName(file.fileName, 15)}
+                      fileType={file.fileType}
+                      uploadedDate={file.uploadedDate}
+                      status={file.status}
+                      thumbnail=""
+                      onDelete={() => handleDeleteFile(file.id)}
+                    />
+                  </Grid.Col>
+                ))
+              : null}
             {fileLoading ? <GetSkeletonFiles /> : null}
           </Grid>
         </ScrollArea>
