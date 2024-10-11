@@ -5,7 +5,6 @@ import {
   Flex,
   Grid,
   Input,
-  Loader,
   Popover,
   ScrollArea,
   Skeleton,
@@ -18,31 +17,61 @@ import {
   gridBreakpoints,
   gridSpan,
 } from "../../utils/constants";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FileCard from "../../components/FileCard";
 import Empty from "../../components/Empty";
 import { Dropzone } from "@mantine/dropzone";
-import { uploadFiles } from "../../apis/upload";
+import { deleteFile, getFiles, uploadFiles } from "../../apis/files";
 import useGlobalStore from "../../context/global";
 import { concatFileName } from "../../utils/utilities";
+import { notifications } from "@mantine/notifications";
+import { useDebouncedValue } from "@mantine/hooks";
+
+const parseFileObject = (selectedFiles) => {
+  return selectedFiles.map((file, index) => ({
+    id: index,
+    fileName: file.name,
+    fileType: file.name.split(".").pop(),
+    uploadedDate: new Date().toISOString().split("T")[0],
+    status: "pending",
+  }));
+};
+
+const parseFileData = (files) => {
+  return files.map((file) => ({
+    id: file.id,
+    fileName: file.file_name,
+    fileType: file.type,
+    uploadedDate: file.created_at.split("T")[0],
+    status: file.status,
+  }));
+};
+
+function GetSkeletonFiles() {
+  return [1, 2, 3].map((index) => (
+    <Grid.Col key={index} span={gridSpan}>
+      <Skeleton height={200} radius="md" />
+    </Grid.Col>
+  ));
+}
 
 export default function UploadFileSection() {
+  // Files State
   const [fileLoading, setFileLoading] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [fileTypeFilter, setFileTypeFilter] = useState([]);
-  const [fileStatusFilter, setFileStatusFilter] = useState([]);
   const files = useGlobalStore((state) => state.files);
   const setFiles = useGlobalStore((state) => state.setFiles);
   const setFilesStatus = useGlobalStore((state) => state.setFilesStatus);
-
-  const parseFileObject = (selectedFiles) => {
-    return selectedFiles.map((file) => ({
-      fileName: file.name,
-      fileType: file.name.split(".").pop(),
-      uploadedDate: new Date().toISOString().split("T")[0],
-      status: "pending",
-    }));
-  };
+  // Search State
+  const [fileSearch, setFileSearch] = useState("");
+  const [fileSearchDebounce] = useDebouncedValue(fileSearch, 500);
+  const [fileTypeFilter, setFileTypeFilter] = useState([]);
+  const [fileStatusFilter, setFileStatusFilter] = useState([]);
+  // Scroll State
+  const [scrollPosition, onScrollPositionChange] = useState({ x: 0, y: 0 });
+  const scrollViewport = useRef(null);
+  const scrollElement = useRef(null);
+  const [filePageIndex, setFilePageIndex] = useState(0);
+  const [fileTotalPages, setFileTotalPages] = useState(0);
 
   const handleUploadFiles = (selectedFiles) => {
     if (selectedFiles.length) {
@@ -51,11 +80,97 @@ export default function UploadFileSection() {
         onProgress: (progressData) => setFilesStatus(progressData.status),
         onSuccess: (progressData) => {
           setFilesStatus(progressData.status);
+          handleViewFiles();
         },
-        onFail: () => {},
+        onFail: (message) =>
+          notifications.show({
+            title: "Something went wrong!",
+            message: message,
+            color: "red",
+          }),
       });
     }
   };
+
+  const handleViewFiles = (
+    pageIndex,
+    search,
+    type,
+    status,
+    concatFiles = false
+  ) => {
+    setFileLoading(true);
+    getFiles({
+      pageIndex: pageIndex,
+      search: search,
+      fileType: type,
+      status: status,
+      onSuccess: (data) => {
+        setFileTotalPages(data.total_pages);
+        if (concatFiles) {
+          setFiles([...files, ...parseFileData(data.files)]);
+        } else {
+          setFiles(parseFileData(data.files));
+        }
+        setFileLoading(false);
+      },
+      onFail: (message) => {
+        notifications.show({
+          title: "Something went wrong!",
+          message: message,
+          color: "red",
+        });
+        setFileLoading(false);
+      },
+    });
+  };
+
+  const handleDeleteFile = (id) => {
+    deleteFile({
+      id,
+      onSuccess: (message) => {
+        notifications.show({
+          title: "Delete",
+          message: message,
+          color: "green",
+        });
+        setFiles(files.filter((file) => file.id !== id));
+      },
+      onFail: (message) =>
+        notifications.show({
+          title: "Error",
+          message: message,
+          color: "red",
+        }),
+    });
+  };
+
+  useEffect(() => {
+    setFilePageIndex(0);
+    handleViewFiles(
+      0,
+      fileSearchDebounce,
+      fileTypeFilter.length && fileTypeFilter.join(","),
+      fileStatusFilter.length && fileStatusFilter.join(",")
+    );
+  }, [fileSearchDebounce, fileTypeFilter, fileStatusFilter]);
+
+  useEffect(() => {
+    if (
+      Math.ceil(scrollPosition.y + scrollElement.current?.clientHeight) ===
+        scrollViewport.current?.scrollHeight &&
+      fileTotalPages > filePageIndex
+    ) {
+      setFilePageIndex(filePageIndex + 1);
+      handleViewFiles(
+        filePageIndex + 1,
+        fileSearchDebounce,
+        fileTypeFilter.length && fileTypeFilter.join(","),
+        fileStatusFilter.length && fileStatusFilter.join(","),
+        true
+      );
+    }
+  }, [scrollPosition]);
 
   return (
     <Flex direction="column" h="100%">
@@ -67,7 +182,7 @@ export default function UploadFileSection() {
           multiple
           onChange={(selectedFiles) => {
             handleUploadFiles(selectedFiles);
-            setFiles([...files, ...parseFileObject(selectedFiles)]);
+            setFiles([...parseFileObject(selectedFiles), ...files]);
           }}
         >
           {(props) => <Button {...props}>Upload</Button>}
@@ -124,34 +239,36 @@ export default function UploadFileSection() {
           <Input
             placeholder="Search"
             radius="xl"
-            leftSection={isSearching ? <Loader size="xs" /> : <IoIosSearch />}
+            leftSection={<IoIosSearch />}
+            value={fileSearch}
+            onChange={(event) => setFileSearch(event.currentTarget.value)}
           />
         </Flex>
       </Flex>
-      {fileLoading ? (
-        <ScrollArea px="md" h="100%" scrollbars="y">
+      {files?.length || fileLoading ? (
+        <ScrollArea
+          ref={scrollElement}
+          viewportRef={scrollViewport}
+          px="md"
+          h="100%"
+          scrollbars="y"
+          onScrollPositionChange={onScrollPositionChange}
+        >
           <Grid w="100%" breakpoints={gridBreakpoints}>
-            {[1, 2, 3].map((index) => (
-              <Grid.Col key={index} span={gridSpan}>
-                <Skeleton height={200} radius="md" />
-              </Grid.Col>
-            ))}
-          </Grid>
-        </ScrollArea>
-      ) : files?.length ? (
-        <ScrollArea px="md" h="100%" scrollbars="y">
-          <Grid w="100%" breakpoints={gridBreakpoints}>
-            {files.map((file, index) => (
-              <Grid.Col key={index} span={gridSpan}>
-                <FileCard
-                  fileName={concatFileName(file.fileName, 15)}
-                  fileType={file.fileType}
-                  uploadedDate={file.uploadedDate}
-                  status={file.status}
-                  thumbnail=""
-                />
-              </Grid.Col>
-            ))}
+            {files?.length &&
+              files.map((file) => (
+                <Grid.Col key={file.id} span={gridSpan}>
+                  <FileCard
+                    fileName={concatFileName(file.fileName, 15)}
+                    fileType={file.fileType}
+                    uploadedDate={file.uploadedDate}
+                    status={file.status}
+                    thumbnail=""
+                    onDelete={() => handleDeleteFile(file.id)}
+                  />
+                </Grid.Col>
+              ))}
+            {fileLoading ? <GetSkeletonFiles /> : null}
           </Grid>
         </ScrollArea>
       ) : (
@@ -162,7 +279,10 @@ export default function UploadFileSection() {
       <Dropzone.FullScreen
         active={true}
         accept={fileAcceptance.split(",")}
-        onDrop={(files) => handleUploadFiles(files)}
+        onDrop={(selectedFiles) => {
+          handleUploadFiles(selectedFiles);
+          setFiles([...parseFileObject(selectedFiles), ...files]);
+        }}
       >
         <Dropzone.Accept>
           <Flex direction="column" justify="center" align="center">

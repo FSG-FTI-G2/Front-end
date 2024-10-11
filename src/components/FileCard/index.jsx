@@ -21,6 +21,7 @@ export default function FileCard({
   uploadedDate,
   status,
   thumbnail,
+  onDelete,
 }) {
   function getColorByFileType(fileType) {
     if (fileType === "pdf") {
@@ -81,7 +82,11 @@ export default function FileCard({
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item leftSection={<IoOpenOutline />}>Open</Menu.Item>
-                <Menu.Item color="red" leftSection={<IoMdTrash />}>
+                <Menu.Item
+                  color="red"
+                  leftSection={<IoMdTrash />}
+                  onClick={onDelete}
+                >
                   Delete
                 </Menu.Item>
               </Menu.Dropdown>
