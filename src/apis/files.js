@@ -62,3 +62,36 @@ export async function uploadFiles({ files, onProgress, onSuccess, onFail }) {
     }
   };
 }
+
+export async function getFiles({
+  pageSize,
+  pageIndex,
+  search,
+  fileType,
+  status,
+  onSuccess,
+  onFail,
+}) {
+  const params = {
+    page_size: pageSize || 10,
+    page_index: pageIndex || 0,
+    search: search || null,
+    file_type: fileType || null,
+    status: status || null,
+  };
+  const response = await apiHelper.get(apiUrls.getFiles, params);
+  if (response.code === 200) {
+    onSuccess(response.data);
+  } else {
+    onFail(response.message);
+  }
+}
+
+export async function deleteFile({ id, onSuccess, onFail }) {
+  const response = await apiHelper.delete(apiUrls.deleteFile + id);
+  if (response.code === 200) {
+    onSuccess(response.message);
+  } else {
+    onFail(response.message);
+  }
+}

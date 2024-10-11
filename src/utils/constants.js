@@ -5,6 +5,8 @@ export const apiUrls = {
   login: "/api/v1/auth/login",
   getCurrentUser: "/api/v1/auth/me",
   uploadFile: "/api/v1/files/",
+  getFiles: "/api/v1/files/",
+  deleteFile: "/api/v1/files/",
 };
 
 export const appColors = {
