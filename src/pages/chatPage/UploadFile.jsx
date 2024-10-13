@@ -23,9 +23,10 @@ import Empty from "../../components/Empty";
 import { Dropzone } from "@mantine/dropzone";
 import { deleteFile, getFiles, uploadFiles } from "../../apis/files";
 import useGlobalStore from "../../context/global";
-import { concatFileName } from "../../utils/utilities";
+import { formatLongFileName, formatDateString } from "../../utils/utilities";
 import { notifications } from "@mantine/notifications";
 import { useDebouncedValue } from "@mantine/hooks";
+import { useNavigate } from "react-router-dom";
 
 const parseFileObject = (selectedFiles) => {
   return selectedFiles.map((file, index) => ({
@@ -42,7 +43,7 @@ const parseFileData = (files) => {
     id: file.id,
     fileName: file.file_name,
     fileType: file.type,
-    uploadedDate: file.created_at.split("T")[0],
+    uploadedDate: formatDateString(file.created_at),
     status: file.status,
   }));
 };
@@ -56,6 +57,7 @@ function GetSkeletonFiles() {
 }
 
 export default function UploadFileSection() {
+  const navigator = useNavigate();
   // Files State
   const [fileLoading, setFileLoading] = useState(false);
   const files = useGlobalStore((state) => state.files);
@@ -259,12 +261,13 @@ export default function UploadFileSection() {
               ? files.map((file) => (
                   <Grid.Col key={file.id} span={gridSpan}>
                     <FileCard
-                      fileName={concatFileName(file.fileName, 15)}
+                      fileName={formatLongFileName(file.fileName, 15)}
                       fileType={file.fileType}
                       uploadedDate={file.uploadedDate}
                       status={file.status}
                       thumbnail=""
                       onDelete={() => handleDeleteFile(file.id)}
+                      onOpen={() => navigator(`/file/${file.id}`)}
                     />
                   </Grid.Col>
                 ))

@@ -1,11 +1,7 @@
 import fileVisualPdf from "../assets/images/fileVisualImagePdf.png";
 import fileVisualDocx from "../assets/images/fileVisualImageDocx.png";
 import fileVisualTxt from "../assets/images/fileVisualImageTxt.png";
-import { appColors } from "./constants";
-
-export function concatFileName(fileName) {
-  return `${fileName.slice(0, 15)}${fileName.length > 15 ? "..." : ""}`;
-}
+import { appColors, baseUrl } from "./constants";
 
 export function getColorByFileType(fileType) {
   if (fileType === "pdf") {
@@ -35,4 +31,34 @@ export function getFailureVisualImageByFileType(fileType) {
   } else {
     return fileVisualTxt;
   }
+}
+
+export function formatDateString(dateString, dateOnly = true) {
+  const date = new Date(dateString);
+  const options = dateOnly
+    ? { year: "numeric", month: "long", day: "numeric" }
+    : {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      };
+  return date.toLocaleDateString("en-US", options);
+}
+
+export function formatLongFileName(fileName, limit = 15) {
+  return fileName.length > limit ? `${fileName.slice(0, limit)}...` : fileName;
+}
+
+export function getFileStaticPath(file) {
+  return `${baseUrl}/static/${file}`;
+}
+
+export async function getUrlContent(url, byteData = false) {
+  const response = await fetch(url);
+  if (response.ok) {
+    return byteData ? response.blob() : response.text();
+  }
+  return null;
 }

@@ -22,6 +22,7 @@ export default function FileCard({
   uploadedDate,
   status,
   thumbnail,
+  onOpen,
   onDelete,
 }) {
   function getColorByStatus(status) {
@@ -62,7 +63,9 @@ export default function FileCard({
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item leftSection={<IoOpenOutline />}>Open</Menu.Item>
+                <Menu.Item leftSection={<IoOpenOutline />} onClick={onOpen}>
+                  Open
+                </Menu.Item>
                 <Menu.Item
                   color="red"
                   leftSection={<IoMdTrash />}
