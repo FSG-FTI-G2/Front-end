@@ -95,3 +95,12 @@ export async function deleteFile({ id, onSuccess, onFail }) {
     onFail(response.message);
   }
 }
+
+export async function getFileById({ id, onSuccess, onFail }) {
+  const response = await apiHelper.get(apiUrls.getFileById + id);
+  if (response.code === 200) {
+    onSuccess(response.data);
+  } else {
+    onFail(response.message);
+  }
+}

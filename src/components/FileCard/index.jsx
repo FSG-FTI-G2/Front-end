@@ -1,6 +1,3 @@
-import fileVisualPdf from "../../assets/images/fileVisualImagePdf.png";
-import fileVisualDocx from "../../assets/images/fileVisualImageDocx.png";
-import fileVisualTxt from "../../assets/images/fileVisualImageTxt.png";
 import {
   ActionIcon,
   Badge,
@@ -14,6 +11,10 @@ import {
 import { appColors } from "../../utils/constants";
 import { IoIosMore, IoMdTrash } from "react-icons/io";
 import { IoOpenOutline } from "react-icons/io5";
+import {
+  getBgColorByFileType,
+  getFailureVisualImageByFileType,
+} from "../../utils/utilities";
 
 export default function FileCard({
   fileName,
@@ -21,28 +22,9 @@ export default function FileCard({
   uploadedDate,
   status,
   thumbnail,
+  onOpen,
   onDelete,
 }) {
-  function getColorByFileType(fileType) {
-    if (fileType === "pdf") {
-      return appColors.pdfBackground;
-    } else if (fileType === "docx") {
-      return appColors.docsBackground;
-    } else {
-      return appColors.lightGrey;
-    }
-  }
-
-  function getFailureVisualImageByFileType(fileType) {
-    if (fileType === "pdf") {
-      return fileVisualPdf;
-    } else if (fileType === "docx") {
-      return fileVisualDocx;
-    } else {
-      return fileVisualTxt;
-    }
-  }
-
   function getColorByStatus(status) {
     if (status === "error") {
       return appColors.statusError;
@@ -67,7 +49,7 @@ export default function FileCard({
           alt={fileName}
           radius="md"
           h={100}
-          bg={getColorByFileType(fileType)}
+          bg={getBgColorByFileType(fileType)}
         />
       </Card.Section>
       <Card.Section px="md" pb="md">
@@ -81,7 +63,9 @@ export default function FileCard({
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item leftSection={<IoOpenOutline />}>Open</Menu.Item>
+                <Menu.Item leftSection={<IoOpenOutline />} onClick={onOpen}>
+                  Open
+                </Menu.Item>
                 <Menu.Item
                   color="red"
                   leftSection={<IoMdTrash />}

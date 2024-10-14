@@ -7,6 +7,7 @@ export const apiUrls = {
   uploadFile: "/api/v1/files/",
   getFiles: "/api/v1/files/",
   deleteFile: "/api/v1/files/",
+  getFileById: "/api/v1/files/",
 };
 
 export const appColors = {

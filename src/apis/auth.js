@@ -3,22 +3,9 @@ import { apiUrls } from "../utils/constants";
 import { removeCookie, setCookie } from "../utils/cookie";
 
 /**
- * @template T
- * @callback onSuccess
- * @param {T} data
- * @returns {void}
- */
-
-/**
- * @callback onFail
- * @param {string} message
- * @returns {void}
- */
-
-/**
  * @param {string} username
  * @param {string} password
- * @param {onSuccess} onSuccess
+ * @param {() => void} onSuccess
  * @param {onFail} onFail
  */
 export async function login({ username, password, onSuccess, onFail }) {
