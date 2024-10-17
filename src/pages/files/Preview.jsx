@@ -9,6 +9,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useLocation, useNavigate } from "react-router-dom";
+import { notifications } from "@mantine/notifications";
 import { IoMdArrowRoundBack, IoMdTime } from "react-icons/io";
 import { FaUser } from "react-icons/fa";
 import {
@@ -19,33 +20,38 @@ import {
 } from "../../utils/utilities";
 import PDFPreview from "./PDFPreview";
 import DOCXPreview from "./DOCXPreview";
-import { getFileById } from "../../apis/files";
-import { notifications } from "@mantine/notifications";
 import TXTPreview from "./TXTPreview";
+import { getFileById } from "../../apis/files";
+
+/**
+ * @param {{
+ * fileType: string
+ * url: string
+ * }} props
+ * @returns {JSX.Element}
+ */
+const GetPreviewByType = ({ fileType, url }) => {
+  if (fileType === "pdf") {
+    return <PDFPreview url={url} />;
+  } else if (fileType === "docx") {
+    return <DOCXPreview url={url} />;
+  } else if (fileType === "txt") {
+    return <TXTPreview url={url} />;
+  } else {
+    return (
+      <Center h="100%" w="100%">
+        <Title order={3}>Preview not available</Title>
+      </Center>
+    );
+  }
+};
 
 export default function FilePreview() {
   const location = useLocation();
-  // console.log(location.pathname.split("/")[2]);
   const navigator = useNavigate();
   const [loading, setLoading] = useState(true);
+  /** @type {[FileData, (data: FileData) => void]} */
   const [file, setFile] = useState(null);
-
-  const GetPreviewByType = ({ fileType, url }) => {
-    console.log(fileType, url);
-    if (fileType === "pdf") {
-      return <PDFPreview url={url} />;
-    } else if (fileType === "docx") {
-      return <DOCXPreview url={url} />;
-    } else if (fileType === "txt") {
-      return <TXTPreview url={url} />;
-    } else {
-      return (
-        <Center h="100%" w="100%">
-          <Title order={3}>Preview not available</Title>
-        </Center>
-      );
-    }
-  };
 
   useEffect(() => {
     const id = location.pathname.split("/")[2];

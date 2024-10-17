@@ -3,7 +3,6 @@ import imageBanner from "../../assets/images/loginImage.jpg";
 import { Button, Flex, PasswordInput, TextInput, Title } from "@mantine/core";
 import { useState } from "react";
 import { login } from "../../apis/auth.js";
-import useGlobalStore from "../../context/global.js";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";

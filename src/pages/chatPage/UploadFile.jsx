@@ -28,6 +28,10 @@ import { notifications } from "@mantine/notifications";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * @param {File[]} selectedFiles
+ * @returns {DisplayedFile[]}
+ */
 const parseFileObject = (selectedFiles) => {
   return selectedFiles.map((file, index) => ({
     id: index,
@@ -38,6 +42,10 @@ const parseFileObject = (selectedFiles) => {
   }));
 };
 
+/**
+ * @param {FileData[]} files
+ * @returns {DisplayedFile[]}
+ */
 const parseFileData = (files) => {
   return files.map((file) => ({
     id: file.id,
@@ -48,6 +56,9 @@ const parseFileData = (files) => {
   }));
 };
 
+/**
+ * @returns {React.ReactNode[]}
+ */
 function GetSkeletonFiles() {
   return [1, 2, 3].map((index) => (
     <Grid.Col key={index} span={gridSpan}>
@@ -75,6 +86,7 @@ export default function UploadFileSection() {
   const [filePageIndex, setFilePageIndex] = useState(0);
   const [fileTotalPages, setFileTotalPages] = useState(0);
 
+  /** @param {File[]} selectedFiles */
   const handleUploadFiles = (selectedFiles) => {
     if (selectedFiles.length) {
       uploadFiles({
@@ -94,6 +106,13 @@ export default function UploadFileSection() {
     }
   };
 
+  /**
+   * @param {number} pageIndex
+   * @param {string} search
+   * @param {string} type
+   * @param {string} status
+   * @param {boolean} concatFiles
+   */
   const handleViewFiles = (
     pageIndex,
     search,
@@ -108,7 +127,7 @@ export default function UploadFileSection() {
       fileType: type,
       status: status,
       onSuccess: (data) => {
-        setFileTotalPages(data.total_pages);
+        setFileTotalPages(data.files);
         if (concatFiles) {
           setFiles([...files, ...parseFileData(data.files)]);
         } else {
@@ -127,6 +146,7 @@ export default function UploadFileSection() {
     });
   };
 
+  /** @param {string} id */
   const handleDeleteFile = (id) => {
     deleteFile({
       id,
@@ -247,7 +267,7 @@ export default function UploadFileSection() {
           />
         </Flex>
       </Flex>
-      {files?.length || fileLoading ? (
+      {files.length || fileLoading ? (
         <ScrollArea
           ref={scrollElement}
           viewportRef={scrollViewport}
@@ -257,7 +277,7 @@ export default function UploadFileSection() {
           onScrollPositionChange={onScrollPositionChange}
         >
           <Grid w="100%" breakpoints={gridBreakpoints}>
-            {files?.length
+            {files.length
               ? files.map((file) => (
                   <Grid.Col key={file.id} span={gridSpan}>
                     <FileCard

@@ -1,5 +1,24 @@
 import { create } from "zustand";
 
+/**
+ * @typedef {{
+ * user: UserData | null;
+ * setUser: (user: UserData) => void;
+ * appTitle: string;
+ * setAppTitle: (title: string) => void;
+ * files: DisplayedFile[];
+ * setFiles: (files: DisplayedFile[]) => void;
+ * setFilesStatus: (status: Record<string, string>) => void;
+ * }} GlobalState
+ */
+
+/**
+ * @typedef {import('zustand').UseBoundStore<import('zustand').StoreApi<GlobalState>>} GlobalStore
+ */
+
+/**
+ * @type {GlobalStore}
+ */
 const useGlobalStore = create((set) => ({
   // General variables
   user: null,

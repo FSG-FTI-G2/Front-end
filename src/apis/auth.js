@@ -3,10 +3,13 @@ import { apiUrls } from "../utils/constants";
 import { removeCookie, setCookie } from "../utils/cookie";
 
 /**
- * @param {string} username
- * @param {string} password
- * @param {() => void} onSuccess
- * @param {onFail} onFail
+ * @async
+ * @param {{
+ * username: string;
+ * password: string;
+ * onSuccess: () => void;
+ * onFail: (message: string) => void;
+ * }} props
  */
 export async function login({ username, password, onSuccess, onFail }) {
   // Create a FormData object
@@ -16,6 +19,7 @@ export async function login({ username, password, onSuccess, onFail }) {
   };
 
   // Make a POST request to the login endpoint
+  /** @type {ResponseData<{ token: string }>} */
   const response = await apiHelper.post(apiUrls.login, data, {
     headers: {
       "content-type": "application/x-www-form-urlencoded",
@@ -32,10 +36,14 @@ export async function login({ username, password, onSuccess, onFail }) {
 }
 
 /**
- * @param {onSuccess} onSuccess
- * @param {onFail} onFail
+ * @async
+ * @param {{
+ * onSuccess: (data: UserData) => void;
+ * onFail: (message: string) => void;
+ * }} props
  */
 export async function getCurrentUser({ onSuccess, onFail }) {
+  /** @type {ResponseData<UserData>} */
   const response = await apiHelper.get(apiUrls.getCurrentUser);
   if (response.code === 200) {
     onSuccess(response.data);

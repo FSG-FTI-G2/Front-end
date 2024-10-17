@@ -3,6 +3,10 @@ import fileVisualDocx from "../assets/images/fileVisualImageDocx.png";
 import fileVisualTxt from "../assets/images/fileVisualImageTxt.png";
 import { appColors, baseUrl } from "./constants";
 
+/**
+ * @param {string} fileType
+ * @returns {string}
+ */
 export function getColorByFileType(fileType) {
   if (fileType === "pdf") {
     return appColors.pdfIndicator;
@@ -13,6 +17,10 @@ export function getColorByFileType(fileType) {
   }
 }
 
+/**
+ * @param {string} fileType
+ * @returns {string}
+ */
 export function getBgColorByFileType(fileType) {
   if (fileType === "pdf") {
     return appColors.pdfBackground;
@@ -23,6 +31,10 @@ export function getBgColorByFileType(fileType) {
   }
 }
 
+/**
+ * @param {string} fileType
+ * @returns {string}
+ */
 export function getFailureVisualImageByFileType(fileType) {
   if (fileType === "pdf") {
     return fileVisualPdf;
@@ -33,6 +45,29 @@ export function getFailureVisualImageByFileType(fileType) {
   }
 }
 
+/**
+ * @param {string} status
+ * @returns {string}
+ */
+export function getColorByStatus(status) {
+  if (status === "error") {
+    return appColors.statusError;
+  } else if (status === "uploading") {
+    return appColors.statusUploading;
+  } else if (status === "processing") {
+    return appColors.statusProcessing;
+  } else if (status === "success") {
+    return appColors.statusSuccess;
+  } else {
+    return appColors.statusPending;
+  }
+}
+
+/**
+ * @param {string} dateString
+ * @param {boolean} dateOnly
+ * @returns {string}
+ */
 export function formatDateString(dateString, dateOnly = true) {
   const date = new Date(dateString);
   const options = dateOnly
@@ -47,14 +82,28 @@ export function formatDateString(dateString, dateOnly = true) {
   return date.toLocaleDateString("en-US", options);
 }
 
+/**
+ * @param {string} fileName
+ * @param {number} limit
+ * @returns {string}
+ */
 export function formatLongFileName(fileName, limit = 15) {
   return fileName.length > limit ? `${fileName.slice(0, limit)}...` : fileName;
 }
 
+/**
+ * @param {string} file
+ * @returns {string}
+ */
 export function getFileStaticPath(file) {
   return `${baseUrl}/static/${file}`;
 }
 
+/**
+ * @param {string} url
+ * @param {boolean} byteData
+ * @returns {Promise<string | Blob | null>}
+ */
 export async function getUrlContent(url, byteData = false) {
   const response = await fetch(url);
   if (response.ok) {
