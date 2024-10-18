@@ -1,5 +1,26 @@
 import { create } from "zustand";
 
+/**
+ * @typedef {{
+ * user: UserData | null;
+ * setUser: (user: UserData) => void;
+ * appTitle: string;
+ * setAppTitle: (title: string) => void;
+ * files: DisplayedFile[];
+ * setFiles: (files: DisplayedFile[]) => void;
+ * setFilesStatus: (status: Record<string, string>) => void;
+ * llmConfig: LLMConfigData | null;
+ * setLLMConfig: (config: LLMConfigData) => void;
+ * }} GlobalState
+ */
+
+/**
+ * @typedef {import('zustand').UseBoundStore<import('zustand').StoreApi<GlobalState>>} GlobalStore
+ */
+
+/**
+ * @type {GlobalStore}
+ */
 const useGlobalStore = create((set) => ({
   // General variables
   user: null,
@@ -16,6 +37,9 @@ const useGlobalStore = create((set) => ({
         status: status[file.fileName] || file.status,
       })),
     })),
+  // LLM variables
+  llmConfig: null,
+  setLLMConfig: (config) => set({ llmConfig: config }),
 }));
 
 export default useGlobalStore;

@@ -3,7 +3,15 @@ import { useEffect, useState } from "react";
 import { getUrlContent } from "../../utils/utilities";
 import { appColors } from "../../utils/constants";
 
+/**
+ *
+ * @param {{
+ * url: string
+ * }} props
+ * @returns {JSX.Element}
+ */
 export default function TXTPreview({ url }) {
+  /** @type {[string, (data: string) => void]} */
   const [data, setData] = useState(null);
 
   useEffect(() => {

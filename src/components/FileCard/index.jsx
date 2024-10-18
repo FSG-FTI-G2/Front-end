@@ -13,9 +13,22 @@ import { IoIosMore, IoMdTrash } from "react-icons/io";
 import { IoOpenOutline } from "react-icons/io5";
 import {
   getBgColorByFileType,
+  getColorByStatus,
   getFailureVisualImageByFileType,
 } from "../../utils/utilities";
 
+/**
+ * @param {{
+ * fileName: string;
+ * fileType: string;
+ * uploadedDate: string;
+ * status: string;
+ * thumbnail: string;
+ * onOpen: () => void;
+ * onDelete: () => void;
+ * }} props
+ * @returns
+ */
 export default function FileCard({
   fileName,
   fileType,
@@ -25,20 +38,6 @@ export default function FileCard({
   onOpen,
   onDelete,
 }) {
-  function getColorByStatus(status) {
-    if (status === "error") {
-      return appColors.statusError;
-    } else if (status === "uploading") {
-      return appColors.statusUploading;
-    } else if (status === "processing") {
-      return appColors.statusProcessing;
-    } else if (status === "success") {
-      return appColors.statusSuccess;
-    } else {
-      return appColors.statusPending;
-    }
-  }
-
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Card.Section p="sm">

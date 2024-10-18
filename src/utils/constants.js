@@ -4,10 +4,8 @@ export const baseUrl = "http://localhost:8000";
 export const apiUrls = {
   login: "/api/v1/auth/login",
   getCurrentUser: "/api/v1/auth/me",
-  uploadFile: "/api/v1/files/",
-  getFiles: "/api/v1/files/",
-  deleteFile: "/api/v1/files/",
-  getFileById: "/api/v1/files/",
+  files: "/api/v1/files/",
+  llm: "/api/v1/llm/",
 };
 
 export const appColors = {

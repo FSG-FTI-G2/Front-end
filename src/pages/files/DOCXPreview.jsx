@@ -1,3 +1,9 @@
+/**
+ * @param {{
+ * url: string
+ * }} props
+ * @returns {JSX.Element}
+ */
 export default function DOCXPreview({ url }) {
   return (
     <iframe

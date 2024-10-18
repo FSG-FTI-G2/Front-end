@@ -3,29 +3,25 @@ import { apiUrls } from "../utils/constants";
 import { createWebSocket } from "../utils/wsHelper";
 
 /**
- * @typedef ProgressData
- * @param {boolean} isComplete
- * @param {number} uploadPercentage
- * @param {Object} status
- */
-
-/**
- * @param {Object} progressData
+ * @param {ProgressDataRaw} progressData
  * @returns {ProgressData}
  */
 function parseProgressObject(progressData) {
   return {
-    isComplete: progressData.is_completed || false,
+    isCompleted: progressData.is_completed || false,
     uploadPercentage: progressData.upload_percentage || 100,
     status: progressData.status || {},
   };
 }
 
 /**
- * @param {File} file
- * @param {(data: ProgressData) => void} onProgress
- * @param {() => void} onSuccess
- * @param {(msg: String) => void} onFail
+ * @async
+ * @param {{
+ * files: File[],
+ * onProgress: (data: ProgressData) => void,
+ * onSuccess: (data: ProgressData) => void,
+ * onFail: (message: string) => void
+ * }} props
  */
 export async function uploadFiles({ files, onProgress, onSuccess, onFail }) {
   // Define form data
@@ -35,7 +31,8 @@ export async function uploadFiles({ files, onProgress, onSuccess, onFail }) {
     data.append("files", file);
   });
   // Make a POST request to the uploadFile endpoint
-  const response = await apiHelper.postFormData(apiUrls.uploadFile, data, {
+  /** @type {ResponseData<{ progress_id: string }>} */
+  const response = await apiHelper.postFormData(apiUrls.files, data, {
     onUploadProgress: (progressEvent) => {
       const percentCompleted = Math.round(
         (progressEvent.loaded * 100) / progressEvent.total
@@ -50,10 +47,10 @@ export async function uploadFiles({ files, onProgress, onSuccess, onFail }) {
   }
   // Open WebSocket connection to get the progress of the file
   const progressId = response.data.progress_id;
-  const ws = createWebSocket(apiUrls.uploadFile + progressId);
+  const ws = createWebSocket(apiUrls.files + progressId);
   ws.onmessage = (event) => {
+    /** @type {ResponseData<ProgressDataRaw>} */
     const data = JSON.parse(event.data);
-    console.log(data);
     if (data.data.is_completed) {
       onSuccess(parseProgressObject(data.data));
       ws.close();
@@ -63,6 +60,18 @@ export async function uploadFiles({ files, onProgress, onSuccess, onFail }) {
   };
 }
 
+/**
+ * @async
+ * @param {{
+ * pageSize: number,
+ * pageIndex: number,
+ * search: string,
+ * fileType: string,
+ * status: string,
+ * onSuccess: (data: PaginationData<FileData>) => void,
+ * onFail: (message: string) => void
+ * }} props
+ */
 export async function getFiles({
   pageSize,
   pageIndex,
@@ -79,7 +88,8 @@ export async function getFiles({
     file_type: fileType || null,
     status: status || null,
   };
-  const response = await apiHelper.get(apiUrls.getFiles, params);
+  /** @type {ResponseData<PaginationData<FileData>} */
+  const response = await apiHelper.get(apiUrls.files, params);
   if (response.code === 200) {
     onSuccess(response.data);
   } else {
@@ -87,8 +97,15 @@ export async function getFiles({
   }
 }
 
+/**
+ * @param {{
+ * id: string,
+ * onSuccess: (message: string) => void,
+ * onFail: (message: string) => void
+ * }} props
+ */
 export async function deleteFile({ id, onSuccess, onFail }) {
-  const response = await apiHelper.delete(apiUrls.deleteFile + id);
+  const response = await apiHelper.delete(apiUrls.files + id);
   if (response.code === 200) {
     onSuccess(response.message);
   } else {
@@ -96,8 +113,16 @@ export async function deleteFile({ id, onSuccess, onFail }) {
   }
 }
 
+/**
+ * @param {{
+ * id: string,
+ * onSuccess: (data: FileData) => void,
+ * onFail: (message: string) => void
+ * }} props
+ */
 export async function getFileById({ id, onSuccess, onFail }) {
-  const response = await apiHelper.get(apiUrls.getFileById + id);
+  /** @type {ResponseData<FileData>} */
+  const response = await apiHelper.get(apiUrls.files + id);
   if (response.code === 200) {
     onSuccess(response.data);
   } else {

@@ -2,17 +2,6 @@ import axios from "axios";
 import { baseUrl } from "./constants";
 import { getCookie } from "./cookie";
 
-// Type definitions
-/**
- * @template T
- * @typedef {Object} ResponseData
- * @property {string} code - The status of the response.
- * @property {string} message - The message of the response.
- * @property {T|null} data - The data returned in the response.
- * @property {Object|null} error - The error message, if any.
- * @property {number} timestamp - The timestamp of the response.
- */
-
 const api = axios.create({
   baseURL: baseUrl,
   headers: {
@@ -32,9 +21,6 @@ const apiHelper = {
     });
   },
 
-  /**
-   * @param {string} token Token to be removed from the request header
-   */
   removeToken: () => {
     api.interceptors.request.use((config) => {
       delete config.headers.Authorization;
