@@ -29,7 +29,11 @@ import {
 import { AiFillLike, AiFillDislike } from "react-icons/ai";
 import Markdown from "react-markdown";
 import { appColors } from "../../utils/constants";
-import { Fragment, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { getLLMConfig, updateLLMConfig } from "../../apis/llm";
+import useGlobalStore from "../../context/global";
+import { notifications } from "@mantine/notifications";
+import { useForm } from "@mantine/form";
 
 const EXAMPLE_PROMPTS = [
   "Summarize my documents",
@@ -40,8 +44,8 @@ const EXAMPLE_PROMPTS = [
 
 const LLM_MODEL_OPTIONS = [
   { label: "OpenAI", value: "openai" },
-  { label: "Azure OpenAI", value: "azure-openai" },
-  { label: "Gemini", value: "gemini" },
+  { label: "Azure OpenAI", value: "azure_openai" },
+  { label: "Gemini", value: "google_gemini" },
   { label: "Ollama", value: "ollama" },
 ];
 
@@ -121,74 +125,164 @@ function GetHumanChat({ content }) {
 /**
  * @param {{
  * model: string
+ * config: LLMConfigData
+ * opened: boolean
+ * toggle: () => void
+ * onOk: (model: string, config: ModelConfig) => void
  * }} props
  * @returns {JSX.Element}
  */
-function GetModelConfigByModel({ model }) {
-  switch (model) {
-    case "openai":
-      return (
-        <Fragment>
-          <Title order={6}>OpenAI Configuation</Title>
-          <TextInput
-            label="Model Name"
-            placeholder="Enter Model Name"
-            radius="md"
-          />
-          <PasswordInput
-            label="API Key"
-            placeholder="Enter API Key"
-            radius="md"
-          />
-        </Fragment>
-      );
-    case "azure-openai":
-      return (
-        <Fragment>
-          <Title order={6}>Azure OpenAI Configuation</Title>
-          <TextInput
-            label="API Endpoint"
-            placeholder="Enter API Endpoint"
-            radius="md"
-          />
-          <TextInput
-            label="Model Name"
-            placeholder="Enter Model Name"
-            radius="md"
-          />
-          <PasswordInput
-            label="API Key"
-            placeholder="Enter API Key"
-            radius="md"
-          />
-        </Fragment>
-      );
-    case "gemini":
-      return (
-        <Fragment>
-          <Title order={6}>Gemini Configuation</Title>
-          <PasswordInput
-            label="API Key"
-            placeholder="Enter API Key"
-            radius="md"
-          />
-        </Fragment>
-      );
-    case "ollama":
-      return (
-        <Fragment>
-          <Title order={6}>Ollama Configuation</Title>
-          <Select
-            label="Model Version"
-            placeholder="Enter Model Version"
-            radius="md"
-            data={MOCK_OLLAMA_MODEL_VERSIONS}
-          />
-        </Fragment>
-      );
-    default:
-      return null;
+function LLMConfigModal({ config, opened, toggle, onOk }) {
+  const [selectedModel, setSelectedModel] = useState(config.selected_model);
+  const configRef = useRef(config.config[selectedModel]);
+
+  /**
+   * @param {{
+   * model: string
+   * }} model
+   * */
+  function GetModelConfig({ model }) {
+    const form = useForm({
+      initialValues: configRef.current,
+      onValuesChange: (values) => {
+        configRef.current = values;
+      },
+    });
+    switch (model) {
+      case "openai":
+        return (
+          <Fragment>
+            <Title order={6}>OpenAI Configuation</Title>
+            <TextInput
+              label="Model Name"
+              placeholder="Enter Model Name"
+              radius="md"
+              value={form.key("name_model") || ""}
+              {...form.getInputProps("name_model")}
+            />
+            <PasswordInput
+              label="API Key"
+              placeholder="Enter API Key"
+              radius="md"
+              value={form.key("api_key") || ""}
+              {...form.getInputProps("api_key")}
+            />
+          </Fragment>
+        );
+      case "azure_openai":
+        return (
+          <Fragment>
+            <Title order={6}>Azure OpenAI Configuation</Title>
+            <TextInput
+              label="API Endpoint"
+              placeholder="Enter API Endpoint"
+              radius="md"
+              value={form.key("endpoint") || ""}
+              {...form.getInputProps("endpoint")}
+            />
+            <TextInput
+              label="Model Name"
+              placeholder="Enter Model Name"
+              radius="md"
+              value={form.key("name_model") || ""}
+              {...form.getInputProps("name_model")}
+            />
+            <PasswordInput
+              label="API Key"
+              placeholder="Enter API Key"
+              radius="md"
+              value={form.key("api_key") || ""}
+              {...form.getInputProps("api_key")}
+            />
+          </Fragment>
+        );
+      case "google_gemini":
+        return (
+          <Fragment>
+            <Title order={6}>Gemini Configuation</Title>
+            <PasswordInput
+              label="API Key"
+              placeholder="Enter API Key"
+              radius="md"
+              value={form.key("api_key") || ""}
+              {...form.getInputProps("api_key")}
+            />
+          </Fragment>
+        );
+      case "ollama":
+        return (
+          <Fragment>
+            <Title order={6}>Ollama Configuation</Title>
+            <Select
+              label="Model Version"
+              placeholder="Enter Model Version"
+              radius="md"
+              data={MOCK_OLLAMA_MODEL_VERSIONS}
+              allowDeselect={false}
+              value={form.key("name_model") || ""}
+              {...form.getInputProps("name_model")}
+            />
+          </Fragment>
+        );
+      default:
+        return null;
+    }
   }
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={toggle}
+      title="Select Model"
+      radius="md"
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+    >
+      <Flex direction="column" gap="md">
+        <Select
+          data={LLM_MODEL_OPTIONS}
+          placeholder="Select LLM Model"
+          radius="md"
+          allowDeselect={false}
+          value={selectedModel}
+          onChange={(value) => {
+            setSelectedModel(value);
+            configRef.current = config.config[value];
+          }}
+        />
+        {selectedModel ? (
+          <Flex
+            direction="column"
+            gap="sm"
+            p="md"
+            bg={appColors.lightGrey}
+            style={{
+              borderRadius: "16px",
+            }}
+          >
+            <GetModelConfig model={selectedModel} />
+          </Flex>
+        ) : null}
+        <Flex justify="end" gap="sm">
+          <Button variant="subtle" color="gray" radius="xl" onClick={toggle}>
+            Cancel
+          </Button>
+          <Button
+            variant="filled"
+            radius="xl"
+            onClick={() => {
+              toggle();
+              onOk(selectedModel, configRef.current);
+            }}
+          >
+            Confirm
+          </Button>
+        </Flex>
+      </Flex>
+    </Modal>
+  );
 }
 
 /**
@@ -223,6 +317,8 @@ function GetMessageHistoryItem({ title, responseRole, active }) {
 export default function ChatBoxSection() {
   // LLM Model states
   const [modalOpened, { toggle: toggleModal }] = useDisclosure();
+  const llmConfig = useGlobalStore((state) => state.llmConfig);
+  const setLLMConfig = useGlobalStore((state) => state.setLLMConfig);
   /** @type {[string, (data: string | null) => void]} */
   const [selectedModel, setSelectedModel] = useState(null);
   // Messages states
@@ -300,65 +396,6 @@ export default function ChatBoxSection() {
   }
 
   /** @returns {JSX.Element} */
-  function GetLLMConfigModal() {
-    return (
-      <Modal
-        opened={modalOpened}
-        onClose={toggleModal}
-        title="Select Model"
-        radius="md"
-        overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
-        }}
-      >
-        <Flex direction="column" gap="md">
-          <Select
-            data={LLM_MODEL_OPTIONS}
-            placeholder="Select LLM Model"
-            radius="md"
-            allowDeselect={false}
-            value={selectedModel}
-            onChange={(value) => setSelectedModel(value)}
-          />
-          {selectedModel ? (
-            <Flex
-              direction="column"
-              gap="sm"
-              p="md"
-              bg={appColors.lightGrey}
-              style={{
-                borderRadius: "16px",
-              }}
-            >
-              <GetModelConfigByModel model={selectedModel} />
-            </Flex>
-          ) : null}
-          <Flex justify="end" gap="sm">
-            <Button
-              variant="subtle"
-              color="gray"
-              radius="xl"
-              onClick={toggleModal}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="filled"
-              radius="xl"
-              onClick={() => {
-                toggleModal();
-              }}
-            >
-              Confirm
-            </Button>
-          </Flex>
-        </Flex>
-      </Modal>
-    );
-  }
-
-  /** @returns {JSX.Element} */
   function GetMessageHistory() {
     return (
       <ScrollArea h="100%">
@@ -366,6 +403,39 @@ export default function ChatBoxSection() {
       </ScrollArea>
     );
   }
+
+  /**
+   * @param {string} model
+   * @param {ModelConfig} config
+   */
+  function handleUpdateLLMConfig(model, config) {
+    updateLLMConfig({
+      selectedModel: model,
+      config,
+      onSuccess: (data) => {
+        setSelectedModel(model);
+        setLLMConfig(data);
+        notifications.show({
+          title: "Success",
+          message: "LLM Model updated successfully",
+          color: "teal",
+        });
+      },
+      onFail: (message) =>
+        notifications.show({ title: "Error", message, color: "red" }),
+    });
+  }
+
+  useEffect(() => {
+    getLLMConfig({
+      onSuccess: (data) => {
+        setLLMConfig(data);
+        setSelectedModel(data.selected_model);
+      },
+      onFail: (message) =>
+        notifications.show({ title: "Error", message, color: "red" }),
+    });
+  }, []);
 
   return (
     <Flex direction="column" h="100%">
@@ -394,7 +464,14 @@ export default function ChatBoxSection() {
       </Flex>
       {!opened ? <GetMessageChat /> : <GetMessageHistory />}
       {!opened ? <GetInputBox /> : null}
-      <GetLLMConfigModal />
+      {llmConfig ? (
+        <LLMConfigModal
+          config={llmConfig}
+          opened={modalOpened}
+          toggle={toggleModal}
+          onOk={handleUpdateLLMConfig}
+        />
+      ) : null}
     </Flex>
   );
 }

@@ -32,7 +32,7 @@ export async function uploadFiles({ files, onProgress, onSuccess, onFail }) {
   });
   // Make a POST request to the uploadFile endpoint
   /** @type {ResponseData<{ progress_id: string }>} */
-  const response = await apiHelper.postFormData(apiUrls.uploadFile, data, {
+  const response = await apiHelper.postFormData(apiUrls.files, data, {
     onUploadProgress: (progressEvent) => {
       const percentCompleted = Math.round(
         (progressEvent.loaded * 100) / progressEvent.total
@@ -47,7 +47,7 @@ export async function uploadFiles({ files, onProgress, onSuccess, onFail }) {
   }
   // Open WebSocket connection to get the progress of the file
   const progressId = response.data.progress_id;
-  const ws = createWebSocket(apiUrls.uploadFile + progressId);
+  const ws = createWebSocket(apiUrls.files + progressId);
   ws.onmessage = (event) => {
     /** @type {ResponseData<ProgressDataRaw>} */
     const data = JSON.parse(event.data);
@@ -89,7 +89,7 @@ export async function getFiles({
     status: status || null,
   };
   /** @type {ResponseData<PaginationData<FileData>} */
-  const response = await apiHelper.get(apiUrls.getFiles, params);
+  const response = await apiHelper.get(apiUrls.files, params);
   if (response.code === 200) {
     onSuccess(response.data);
   } else {
@@ -105,7 +105,7 @@ export async function getFiles({
  * }} props
  */
 export async function deleteFile({ id, onSuccess, onFail }) {
-  const response = await apiHelper.delete(apiUrls.deleteFile + id);
+  const response = await apiHelper.delete(apiUrls.files + id);
   if (response.code === 200) {
     onSuccess(response.message);
   } else {
@@ -122,7 +122,7 @@ export async function deleteFile({ id, onSuccess, onFail }) {
  */
 export async function getFileById({ id, onSuccess, onFail }) {
   /** @type {ResponseData<FileData>} */
-  const response = await apiHelper.get(apiUrls.getFileById + id);
+  const response = await apiHelper.get(apiUrls.files + id);
   if (response.code === 200) {
     onSuccess(response.data);
   } else {

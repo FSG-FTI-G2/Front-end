@@ -9,6 +9,8 @@ import { create } from "zustand";
  * files: DisplayedFile[];
  * setFiles: (files: DisplayedFile[]) => void;
  * setFilesStatus: (status: Record<string, string>) => void;
+ * llmConfig: LLMConfigData | null;
+ * setLLMConfig: (config: LLMConfigData) => void;
  * }} GlobalState
  */
 
@@ -35,6 +37,9 @@ const useGlobalStore = create((set) => ({
         status: status[file.fileName] || file.status,
       })),
     })),
+  // LLM variables
+  llmConfig: null,
+  setLLMConfig: (config) => set({ llmConfig: config }),
 }));
 
 export default useGlobalStore;

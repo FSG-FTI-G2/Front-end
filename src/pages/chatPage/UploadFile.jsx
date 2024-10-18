@@ -127,7 +127,7 @@ export default function UploadFileSection() {
       fileType: type,
       status: status,
       onSuccess: (data) => {
-        setFileTotalPages(data.files);
+        setFileTotalPages(data.total_pages);
         if (concatFiles) {
           setFiles([...files, ...parseFileData(data.files)]);
         } else {

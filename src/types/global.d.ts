@@ -56,3 +56,19 @@ interface DisplayedFile {
   uploadedDate: string;
   status: string;
 }
+
+// LLM Config Object
+interface ModelConfig {
+  name_model: string;
+  api_key: ?string;
+  endpoint: ?string;
+}
+
+interface LLMConfigData {
+  id: string;
+  user_id: string;
+  selected_model: string?;
+  config: Record<string, ModelConfig>;
+  created_at: string;
+  updated_at: string;
+}
