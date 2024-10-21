@@ -1,6 +1,6 @@
 // API Responses
 interface ResponseData<T> {
-  code: int;
+  code: number;
   message: string;
   data: T | null;
   error: Object | null;
@@ -8,7 +8,7 @@ interface ResponseData<T> {
 }
 
 interface PaginationData<T> {
-  [x: string]: T[];
+  data: T[];
   page_index: number;
   page_size: number;
   total_pages: number;
@@ -60,15 +60,30 @@ interface DisplayedFile {
 // LLM Config Object
 interface ModelConfig {
   name_model: string;
-  api_key: ?string;
-  endpoint: ?string;
+  api_key?: string;
+  endpoint?: string;
 }
 
 interface LLMConfigData {
   id: string;
   user_id: string;
-  selected_model: string?;
+  selected_model?: string;
   config: Record<string, ModelConfig>;
   created_at: string;
   updated_at: string;
+}
+
+// Chat Object
+
+interface MessageData {
+  role: string;
+  content: string;
+}
+
+interface ChatData {
+  id: string;
+  user_id: string;
+  title: string;
+  messages: MessageData[];
+  role_prompt: string;
 }

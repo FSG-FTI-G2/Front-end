@@ -6,6 +6,7 @@ export const apiUrls = {
   getCurrentUser: "/api/v1/auth/me",
   files: "/api/v1/files/",
   llm: "/api/v1/llm/",
+  chat: "/api/v1/chat/",
 };
 
 export const appColors = {

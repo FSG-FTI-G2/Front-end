@@ -34,6 +34,7 @@ import { getLLMConfig, updateLLMConfig } from "../../apis/llm";
 import useGlobalStore from "../../context/global";
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
+import { getChatMessageById, getChats } from "../../apis/chat";
 
 const EXAMPLE_PROMPTS = [
   "Summarize my documents",
@@ -290,26 +291,29 @@ function LLMConfigModal({ config, opened, toggle, onOk }) {
  * title: string
  * responseRole: string
  * active: boolean
+ * onClick: () => void
  * }} props
  * @returns {JSX.Element}
  */
-function GetMessageHistoryItem({ title, responseRole, active }) {
+function GetMessageHistoryItem({ title, responseRole, active, onClick }) {
   const { hovered, ref } = useHover();
   return (
     <NavLink
       ref={ref}
       label={<Title order={5}>{title}</Title>}
       rightSection={
-        hovered ? (
-          <ActionIcon variant="light" radius="md" color="red">
-            <IoMdTrash />
-          </ActionIcon>
-        ) : (
+        <Flex gap="xs" align="center">
+          {hovered ? (
+            <ActionIcon variant="light" radius="md" color="red">
+              <IoMdTrash />
+            </ActionIcon>
+          ) : null}
           <Badge color="blue">{responseRole}</Badge>
-        )
+        </Flex>
       }
+      h={60}
       active={active}
-      p="md"
+      onClick={onClick}
     />
   );
 }
@@ -323,14 +327,15 @@ export default function ChatBoxSection() {
   const [selectedModel, setSelectedModel] = useState(null);
   // Messages states
   const [opened, { toggle }] = useDisclosure();
-  const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hello, how can I help you today?" },
-    { role: "human", content: "I need help with my document" },
-  ]);
+  const setChatMessages = useGlobalStore((state) => state.setChatMessages);
+  // Chat states
+  const chats = useGlobalStore((state) => state.chats);
+  const setChats = useGlobalStore((state) => state.setChats);
+  const [currentChatIndex, setCurrentChatIndex] = useState(-1);
 
   /** @returns {JSX.Element} */
   function GetMessageChat() {
-    return messages.length ? (
+    return chats[currentChatIndex]?.messages.length ? (
       <Flex
         direction="column-reverse"
         flex={1}
@@ -339,7 +344,7 @@ export default function ChatBoxSection() {
           overflowY: "auto",
         }}
       >
-        {messages.map((message, index) =>
+        {chats[currentChatIndex].messages.map((message, index) =>
           message.role === "assistant" ? (
             <GetAssistantChat key={index} content={message.content} />
           ) : (
@@ -388,7 +393,7 @@ export default function ChatBoxSection() {
           rightSection={<IoSend />}
           w="100%"
         />
-        <Text align="right" c="gray" size="sm">
+        <Text align="center" c="gray" size="sm">
           AI may response incorrectly, please double check.
         </Text>
       </Flex>
@@ -399,7 +404,18 @@ export default function ChatBoxSection() {
   function GetMessageHistory() {
     return (
       <ScrollArea h="100%">
-        <GetMessageHistoryItem title="Chat Title" responseRole="Student" />
+        {chats.map((chat, index) => (
+          <GetMessageHistoryItem
+            key={chat.id}
+            title={chat.title}
+            responseRole="Student"
+            active={index === currentChatIndex}
+            onClick={() => {
+              setCurrentChatIndex(index);
+              toggle();
+            }}
+          />
+        ))}
       </ScrollArea>
     );
   }
@@ -426,6 +442,21 @@ export default function ChatBoxSection() {
     });
   }
 
+  const getMessages = useCallback((chatId) => {
+    getChatMessageById({
+      messageId: chatId,
+      onSuccess: (data) => setChatMessages(chatId, data),
+      onFail: (message) =>
+        notifications.show({
+          title: "Error",
+          message,
+          color: "red",
+        }),
+    });
+  }, []);
+
+  const createNewChat = useCallback(() => {}, []);
+
   useEffect(() => {
     getLLMConfig({
       onSuccess: (data) => {
@@ -435,13 +466,30 @@ export default function ChatBoxSection() {
       onFail: (message) =>
         notifications.show({ title: "Error", message, color: "red" }),
     });
+    getChats({
+      onSuccess: (data) => {
+        setChats(data);
+        // Get messages of the first chat
+        getMessages(data[currentChatIndex].id);
+      },
+      onFail: (message) =>
+        notifications.show({ title: "Error", message, color: "red" }),
+    });
   }, []);
+
+  useEffect(() => {
+    if (chats[currentChatIndex]?.messages.length === 0) {
+      getMessages(chats[currentChatIndex].id);
+    }
+  }, [currentChatIndex]);
 
   return (
     <Flex direction="column" h="100%">
       <Flex p="md" justify="space-between">
         <Burger size="sm" opened={opened} onClick={toggle} />
-        <Title order={4}>{opened ? "History" : "Chat Title"}</Title>
+        <Title order={4}>
+          {opened ? "History" : chats[currentChatIndex]?.title}
+        </Title>
         {!opened ? (
           <Button
             variant={selectedModel ? "filled" : "outline"}
@@ -457,7 +505,15 @@ export default function ChatBoxSection() {
               : "Select Model"}
           </Button>
         ) : (
-          <Button radius="xl" leftSection={<IoAdd />} variant="light">
+          <Button
+            radius="xl"
+            leftSection={<IoAdd />}
+            variant="light"
+            onClick={() => {
+              setCurrentChatIndex(-1);
+              toggle();
+            }}
+          >
             New Chat
           </Button>
         )}
