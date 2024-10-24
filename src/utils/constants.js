@@ -50,3 +50,23 @@ export const gridSpan = {
   lg: 4,
   xl: 3,
 };
+
+export const LLMModelOptions = [
+  { label: "OpenAI", value: "openai" },
+  { label: "Azure OpenAI", value: "azure_openai" },
+  { label: "Gemini", value: "google_gemini" },
+  { label: "Ollama", value: "ollama" },
+];
+
+export const SelectRolePromptOptions = [
+  { label: "General", value: "general" },
+  { label: "Student", value: "student" },
+  { label: "Expert", value: "expert" },
+];
+
+export const ExamplePrompts = [
+  "Summarize my documents",
+  "What is my document topics",
+  "Something in my document",
+  "Can you help me with my document",
+];
