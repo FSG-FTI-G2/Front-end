@@ -7,11 +7,12 @@ import LoginLayout from "../pages/loginPage";
 import UploadFileSection from "../pages/chatPage/UploadFile";
 import FilePreview from "../pages/files/Preview";
 import ChatBoxSection from "../pages/chatPage/ChatBox";
+import LandingPage from "../pages/landingPage";
 
 export const routes = [
   {
     path: "/",
-    element: <div>Landing Page</div>,
+    element: <LandingPage />,
   },
   {
     path: "/login",
