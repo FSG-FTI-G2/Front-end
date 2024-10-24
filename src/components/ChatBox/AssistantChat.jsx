@@ -1,14 +1,23 @@
-import { ActionIcon, CopyButton, Flex } from "@mantine/core";
-import { useEffect, useState } from "react";
+import {
+  ActionIcon,
+  Anchor,
+  CopyButton,
+  Flex,
+  List,
+  Text,
+} from "@mantine/core";
+import { useCallback, useEffect, useState } from "react";
 import { AiFillDislike, AiFillLike } from "react-icons/ai";
 import { IoCheckmarkOutline, IoCopyOutline } from "react-icons/io5";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 /**
  * @param {{
  * content: string
  * isSpawnToken: boolean
  * spawnCompleteCallback: () => void
+ * onRefClick: (ref: string) => void
  * }} props
  * @returns {JSX.Element}
  */
@@ -16,20 +25,41 @@ export default function AssistantChat({
   content,
   isSpawnToken = false,
   spawnCompleteCallback,
+  onRefClick,
 }) {
   const [displayedContent, setDisplayedContent] = useState("");
   const [isSpawnComplete, setIsSpawnComplete] = useState(false);
+  const [references, setReferences] = useState([]);
+
+  // Function to detect citations and replace with numbers
+  const processCitations = useCallback(
+    (text) => {
+      let refList = [];
+      let citationIndex = 1;
+      const transformedContent = text.replace(/\[(.*?)\]/g, (match, p1) => {
+        refList.push(p1.replace("File: ", "")); // Collect the citation link
+        return `**${citationIndex++}**`; // Replace with a numbered citation
+      });
+      setReferences(refList); // Store the reference list
+      return transformedContent;
+    },
+    [setReferences]
+  );
 
   useEffect(() => {
+    // If isSpawnToken is false, process and display the full content immediately
     if (!isSpawnToken) {
-      setDisplayedContent(content);
+      const processedContent = processCitations(content);
+      setDisplayedContent(processedContent);
       setIsSpawnComplete(true);
       return;
     }
 
+    // Gradual token spawning logic (spawning 20 tokens at a time)
     let currentIndex = 0;
-    const tokens = content.split(""); // Split by characters or words based on your preference
-    const tokenBatchSize = 20; // Number of tokens per interval
+    const tokens = content.split("");
+    const tokenBatchSize = 20;
+    let fullContent = processCitations(content); // Process content for citations
     setIsSpawnComplete(false);
 
     const interval = setInterval(() => {
@@ -37,7 +67,7 @@ export default function AssistantChat({
         setDisplayedContent(
           (prev) =>
             prev +
-            tokens.slice(currentIndex, currentIndex + tokenBatchSize).join("")
+            fullContent.slice(currentIndex, currentIndex + tokenBatchSize)
         );
         currentIndex += tokenBatchSize;
       } else {
@@ -45,15 +75,24 @@ export default function AssistantChat({
         setIsSpawnComplete(true);
         spawnCompleteCallback();
       }
-    }, 50); // Adjust the delay for faster or slower token spawning
+    }, 50);
 
-    return () => clearInterval(interval); // Clean up on component unmount
+    return () => clearInterval(interval);
   }, [content, isSpawnToken]);
 
   return (
     <Flex p="md">
       <Flex direction="column" gap="xs">
-        <Markdown>{displayedContent}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{displayedContent}</Markdown>
+        {references.length > 0 && isSpawnComplete ? (
+          <List type="ordered" size="sm">
+            {references.map((ref, index) => (
+              <List.Item key={index}>
+                <Anchor onClick={() => onRefClick(ref)}>{ref}</Anchor>
+              </List.Item>
+            ))}
+          </List>
+        ) : null}
         {isSpawnComplete ? (
           <Flex>
             <ActionIcon variant="subtle" radius="md" color="gray">

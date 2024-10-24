@@ -59,7 +59,6 @@ export const LLMModelOptions = [
 ];
 
 export const SelectRolePromptOptions = [
-  { label: "General", value: "general" },
   { label: "Student", value: "student" },
   { label: "Expert", value: "expert" },
 ];
