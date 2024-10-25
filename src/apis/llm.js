@@ -31,7 +31,6 @@ export async function updateLLMConfig({
   onSuccess,
   onFail,
 }) {
-  console.log(config);
   /** @type {ResponseData<LLMConfigData>} */
   const response = await apiHelper.post(apiUrls.llm, config, {
     params: { selected_model: selectedModel },

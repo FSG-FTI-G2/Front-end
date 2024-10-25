@@ -6,6 +6,7 @@ export const apiUrls = {
   getCurrentUser: "/api/v1/auth/me",
   files: "/api/v1/files/",
   llm: "/api/v1/llm/",
+  chat: "/api/v1/chat/",
 };
 
 export const appColors = {
@@ -49,3 +50,22 @@ export const gridSpan = {
   lg: 4,
   xl: 3,
 };
+
+export const LLMModelOptions = [
+  { label: "OpenAI", value: "openai" },
+  { label: "Azure OpenAI", value: "azure_openai" },
+  { label: "Gemini", value: "google_gemini" },
+  { label: "Ollama", value: "ollama" },
+];
+
+export const SelectRolePromptOptions = [
+  { label: "Student", value: "student" },
+  { label: "Expert", value: "expert" },
+];
+
+export const ExamplePrompts = [
+  "Summarize my documents",
+  "What is my document topics",
+  "Something in my document",
+  "Can you help me with my document",
+];

@@ -64,6 +64,21 @@ export function getColorByStatus(status) {
 }
 
 /**
+ * @param {string} role
+ * @returns {string}
+ */
+export function getColorByRolePrompt(role) {
+  role = role.toLowerCase();
+  if (role === "student") {
+    return appColors.docsIndicator;
+  } else if (role === "expert") {
+    return appColors.pdfIndicator;
+  } else {
+    return appColors.grey;
+  }
+}
+
+/**
  * @param {string} dateString
  * @param {boolean} dateOnly
  * @returns {string}

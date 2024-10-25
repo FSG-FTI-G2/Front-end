@@ -11,6 +11,9 @@ import { create } from "zustand";
  * setFilesStatus: (status: Record<string, string>) => void;
  * llmConfig: LLMConfigData | null;
  * setLLMConfig: (config: LLMConfigData) => void;
+ * chats: ChatData[];
+ * setChats: (chats: ChatData[]) => void;
+ * setChatMessages: (chatId: string, messages: MessageData[]) => void;
  * }} GlobalState
  */
 
@@ -40,6 +43,15 @@ const useGlobalStore = create((set) => ({
   // LLM variables
   llmConfig: null,
   setLLMConfig: (config) => set({ llmConfig: config }),
+  // Chat variables
+  chats: [],
+  setChats: (chats) => set({ chats }),
+  setChatMessages: (chatId, messages) =>
+    set((state) => ({
+      chats: state.chats.map((chat) =>
+        chat.id === chatId ? { ...chat, messages } : chat
+      ),
+    })),
 }));
 
 export default useGlobalStore;
