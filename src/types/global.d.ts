@@ -76,7 +76,7 @@ interface LLMConfigData {
 // Chat Object
 
 interface MessageData {
-  role: string;
+  type: string;
   content: string;
 }
 

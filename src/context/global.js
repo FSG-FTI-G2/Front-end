@@ -14,6 +14,7 @@ import { create } from "zustand";
  * chats: ChatData[];
  * setChats: (chats: ChatData[]) => void;
  * setChatMessages: (chatId: string, messages: MessageData[]) => void;
+ * reset: () => void;
  * }} GlobalState
  */
 
@@ -52,6 +53,15 @@ const useGlobalStore = create((set) => ({
         chat.id === chatId ? { ...chat, messages } : chat
       ),
     })),
+  // Reset function
+  reset: () =>
+    set({
+      user: null,
+      appTitle: "Welcome back",
+      files: [],
+      llmConfig: null,
+      chats: [],
+    }),
 }));
 
 export default useGlobalStore;
