@@ -9,7 +9,11 @@ import {
   ScrollArea,
   Skeleton,
   Title,
+  rem,
+  Menu
 } from "@mantine/core";
+import { FaGoogleDrive, } from "react-icons/fa";
+import { MdComputer } from "react-icons/md";
 import { IoIosCloudUpload, IoIosSearch, IoMdClose } from "react-icons/io";
 import { IoFilter } from "react-icons/io5";
 import {
@@ -27,6 +31,7 @@ import { formatLongFileName, formatDateString } from "../../utils/utilities";
 import { notifications } from "@mantine/notifications";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useNavigate } from "react-router-dom";
+import useDrivePicker from "react-google-drive-picker";
 
 /**
  * @param {File[]} selectedFiles
@@ -167,6 +172,31 @@ export default function UploadFileSection() {
     });
   };
 
+  const [openPicker] = useDrivePicker();
+  const handleOpenPicker = () => {
+    openPicker({
+        clientId: "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
+        developerKey: "AIzaSyAhj80NKqZRTeQOwHjKyXT3BSdwYZZ2UL0",
+        viewId: "DOCS",
+        showUploadView: true,
+        showUploadFolders: true,
+        supportDrives: true,
+        multiselect: true,
+        callbackFunction: (data) => {
+            if (data.action === 'cancel') {
+                console.log('User clicked cancel/close button');
+                return;
+            }
+            if (data.action === 'picked') {
+                console.log("Files picked:", data.docs);
+                uploadFiles(data);
+            }
+        },
+    });
+};
+
+
+
   useEffect(() => {
     setFilePageIndex(0);
     handleViewFiles(
@@ -180,7 +210,7 @@ export default function UploadFileSection() {
   useEffect(() => {
     if (
       Math.ceil(scrollPosition.y + scrollElement.current?.clientHeight) ===
-        scrollViewport.current?.scrollHeight &&
+      scrollViewport.current?.scrollHeight &&
       fileTotalPages > filePageIndex
     ) {
       setFilePageIndex(filePageIndex + 1);
@@ -197,7 +227,15 @@ export default function UploadFileSection() {
   return (
     <Flex direction="column" h="100%">
       <Flex p="md" justify="space-between">
-        <FileButton
+
+        <Menu shadow="md" width={200} position="bottom-start" keepMounted>
+          <Menu.Target>
+            <Button radius="xl">Upload Menu</Button>
+          </Menu.Target>
+
+          <Menu.Dropdown>
+
+          <FileButton
           leftSection={<IoIosCloudUpload />}
           radius="xl"
           accept={fileAcceptance}
@@ -207,8 +245,18 @@ export default function UploadFileSection() {
             setFiles([...parseFileObject(selectedFiles), ...files]);
           }}
         >
-          {(props) => <Button {...props}>Upload</Button>}
+          {(props) => <Menu.Item {...props} leftSection={<MdComputer style={{ width: rem(14), height: rem(14) }} />}>
+              Upload from computer
+            </Menu.Item>}
         </FileButton>
+
+            <Menu.Item leftSection={<FaGoogleDrive style={{ width: rem(14), height: rem(14) }} />} onClick={() => handleOpenPicker()}>
+              Upload from Google Drive
+            </Menu.Item>
+
+          </Menu.Dropdown>
+        </Menu>
+
         <Flex gap={10}>
           <Popover shadow="md" width={200} position="bottom" radius="md">
             <Popover.Target>
@@ -279,18 +327,18 @@ export default function UploadFileSection() {
           <Grid w="100%" breakpoints={gridBreakpoints}>
             {files.length
               ? files.map((file) => (
-                  <Grid.Col key={file.id} span={gridSpan}>
-                    <FileCard
-                      fileName={formatLongFileName(file.fileName, 15)}
-                      fileType={file.fileType}
-                      uploadedDate={file.uploadedDate}
-                      status={file.status}
-                      thumbnail=""
-                      onDelete={() => handleDeleteFile(file.id)}
-                      onOpen={() => navigator(`/file/${file.id}`)}
-                    />
-                  </Grid.Col>
-                ))
+                <Grid.Col key={file.id} span={gridSpan}>
+                  <FileCard
+                    fileName={formatLongFileName(file.fileName, 15)}
+                    fileType={file.fileType}
+                    uploadedDate={file.uploadedDate}
+                    status={file.status}
+                    thumbnail=""
+                    onDelete={() => handleDeleteFile(file.id)}
+                    onOpen={() => navigator(`/file/${file.id}`)}
+                  />
+                </Grid.Col>
+              ))
               : null}
             {fileLoading ? <GetSkeletonFiles /> : null}
           </Grid>
