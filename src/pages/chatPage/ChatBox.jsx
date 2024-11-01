@@ -222,7 +222,7 @@ export default function ChatBoxSection() {
           <HumanChat content={temporalUserMessage.content} />
         ) : null}
         {chats[currentChatIndex]?.messages.map((message, index) =>
-          message.role === "assistant" ? (
+          message.type === "ai" ? (
             <AssistantChat
               key={index}
               content={message.content}

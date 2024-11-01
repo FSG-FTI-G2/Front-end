@@ -55,4 +55,5 @@ export async function getCurrentUser({ onSuccess, onFail }) {
 export async function logout() {
   removeCookie("token");
   apiHelper.removeToken();
+  window.location.href = "/login";
 }

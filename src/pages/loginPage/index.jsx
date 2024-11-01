@@ -1,14 +1,16 @@
 import * as style from "./styles.js";
 import imageBanner from "../../assets/images/loginImage.jpg";
 import { Button, Flex, PasswordInput, TextInput, Title } from "@mantine/core";
-import { useState } from "react";
-import { login } from "../../apis/auth.js";
+import { useEffect, useState } from "react";
+import { login, logout } from "../../apis/auth.js";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
+import useGlobalStore from "../../context/global.js";
 
 export default function LoginLayout() {
   const [isButtonLoading, setIsButtonLoading] = useState(false);
+  const reset = useGlobalStore((state) => state.reset);
   const navigator = useNavigate();
   const form = useForm({
     initialValues: {
@@ -16,6 +18,11 @@ export default function LoginLayout() {
       password: "",
     },
   });
+
+  useEffect(() => {
+    document.title = "Login";
+    reset();
+  }, []);
 
   return (
     <Flex style={style.wrapperStyle}>
