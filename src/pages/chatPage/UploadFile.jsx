@@ -172,29 +172,79 @@ export default function UploadFileSection() {
     });
   };
 
+
+  const [accessToken, setAccessToken] = useState(localStorage.getItem("googleAccessToken") || null); // Check for stored token
   const [openPicker] = useDrivePicker();
+  const authorizeDrive = () => {
+    return new Promise((resolve, reject) => {
+      const storedToken = localStorage.getItem('googleAccessToken');
+      if (storedToken) {
+        // Use the stored token if it exists
+        setAccessToken(storedToken);
+        resolve(storedToken);
+      } else {
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: '966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com',
+          scope: 'https://www.googleapis.com/auth/drive.readonly',
+          callback: (tokenResponse) => {
+            if (tokenResponse.error) {
+              reject("Authorization failed");
+            } else {
+              const newToken = tokenResponse.access_token;
+              setAccessToken(newToken); // Update state
+              localStorage.setItem("googleAccessToken", newToken); // Save to localStorage
+              resolve(newToken);
+            }
+          },
+        });
+        tokenClient.requestAccessToken();
+      }
+    });
+  };
+
+  const downloadFileFromDrive = async (fileId, accessToken) => {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText}`);
+    }
+    return await response.blob();
+  };
+
   const handleOpenPicker = () => {
     openPicker({
-        clientId: "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
-        developerKey: "AIzaSyAhj80NKqZRTeQOwHjKyXT3BSdwYZZ2UL0",
-        viewId: "DOCS",
-        showUploadView: true,
-        showUploadFolders: true,
-        supportDrives: true,
-        multiselect: true,
-        callbackFunction: (data) => {
-            if (data.action === 'cancel') {
-                console.log('User clicked cancel/close button');
-                return;
-            }
-            if (data.action === 'picked') {
-                console.log("Files picked:", data.docs);
-                uploadFiles(data);
-            }
-        },
+      clientId: "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
+      developerKey: "AIzaSyAhj80NKqZRTeQOwHjKyXT3BSdwYZZ2UL0",
+      scope: "https://www.googleapis.com/auth/drive.file",
+      viewId: "DOCS",
+      showUploadView: true,
+      showUploadFolders: true,
+      supportDrives: true,
+      multiselect: true,
+      callbackFunction: async (data) => {
+        if (data.action === 'picked') {
+          const files = data.docs;
+          try {
+            const token = await authorizeDrive(); // Obtain or reuse access token
+            const driveFiles = await Promise.all(
+              files.map(async (file) => {
+                const fileContent = await downloadFileFromDrive(file.id, token);
+                return new File([fileContent], file.name, { type: file.mimeType });
+              })
+            );
+            handleUploadFiles(driveFiles);
+          } catch (error) {
+            console.error("Failed to download files from Google Drive:", error);
+          }
+        } else {
+          console.log('User canceled Google Drive picker');
+        }
+      },
     });
-};
+  };
 
+  
 
 
   useEffect(() => {
@@ -235,24 +285,40 @@ export default function UploadFileSection() {
 
           <Menu.Dropdown>
 
-          <FileButton
-          leftSection={<IoIosCloudUpload />}
-          radius="xl"
-          accept={fileAcceptance}
-          multiple
-          onChange={(selectedFiles) => {
-            handleUploadFiles(selectedFiles);
-            setFiles([...parseFileObject(selectedFiles), ...files]);
-          }}
-        >
-          {(props) => <Menu.Item {...props} leftSection={<MdComputer style={{ width: rem(14), height: rem(14) }} />}>
-              Upload from computer
-            </Menu.Item>}
-        </FileButton>
+            <FileButton
+              leftSection={<IoIosCloudUpload />}
+              radius="xl"
+              accept={fileAcceptance}
+              multiple
+              onChange={(selectedFiles) => {
+                handleUploadFiles(selectedFiles);
+                setFiles([...parseFileObject(selectedFiles), ...files]);
+              }}
+            >
+              {(props) => (
+                <Menu.Item {...props} leftSection={<MdComputer style={{ width: rem(14), height: rem(14) }} />}>
+                  Upload from computer
+                </Menu.Item>
+              )}
+            </FileButton>
 
-            <Menu.Item leftSection={<FaGoogleDrive style={{ width: rem(14), height: rem(14) }} />} onClick={() => handleOpenPicker()}>
-              Upload from Google Drive
-            </Menu.Item>
+            <FileButton
+              leftSection={<FaGoogleDrive style={{ width: 14, height: 14 }} />}
+              radius="xl"
+              onClick={async () => {
+                const filesFromDrive = await handleOpenPicker();
+                if (filesFromDrive) {
+                  handleUploadFiles(filesFromDrive);
+                  setFiles([...parseFileObject(filesFromDrive), ...files]);
+                }
+              }}
+            >
+              {(props) => (
+                <Menu.Item {...props} leftSection={<FaGoogleDrive style={{ width: rem(14), height: rem(14) }} />}>
+                  Upload from Google Drive
+                </Menu.Item>
+              )}
+            </FileButton>
 
           </Menu.Dropdown>
         </Menu>
