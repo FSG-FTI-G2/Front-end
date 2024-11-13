@@ -87,3 +87,10 @@ interface ChatData {
   messages: MessageData[];
   role_prompt: string;
 }
+
+interface GoogleUserData {
+  id : string;
+  email : string;
+  picture : string;
+  verified_email : boolean
+}

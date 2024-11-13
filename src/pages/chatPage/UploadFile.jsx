@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { FaGoogleDrive, } from "react-icons/fa";
 import { MdComputer } from "react-icons/md";
-import { IoIosCloudUpload, IoIosSearch, IoMdClose } from "react-icons/io";
+import { IoIosCloudUpload, IoIosSearch, IoMdClose, IoIosLogOut, IoMdArrowDropdown } from "react-icons/io";
 import { IoFilter } from "react-icons/io5";
 import {
   fileAcceptance,
@@ -172,16 +172,20 @@ export default function UploadFileSection() {
     });
   };
 
-
-  const [accessToken, setAccessToken] = useState(localStorage.getItem("googleAccessToken") || null); // Check for stored token
+  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
   const [openPicker] = useDrivePicker();
+  /** @type {[GoogleUserData, (GoogleUserData | null) => void]}] */
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+
   const authorizeDrive = () => {
     return new Promise((resolve, reject) => {
-      const storedToken = localStorage.getItem('googleAccessToken');
-      if (storedToken) {
-        // Use the stored token if it exists
-        setAccessToken(storedToken);
-        resolve(storedToken);
+      if (accessToken) {
+        resolve(accessToken);
+        fetchGoogleUserInfo(accessToken);
+        setIsLoggedIn(true);
       } else {
         const tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: '966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com',
@@ -190,10 +194,11 @@ export default function UploadFileSection() {
             if (tokenResponse.error) {
               reject("Authorization failed");
             } else {
-              const newToken = tokenResponse.access_token;
-              setAccessToken(newToken); // Update state
-              localStorage.setItem("googleAccessToken", newToken); // Save to localStorage
-              resolve(newToken);
+              localStorage.setItem('accessToken', tokenResponse.access_token);
+              setAccessToken(tokenResponse.access_token);
+              fetchGoogleUserInfo(tokenResponse.access_token);
+              setIsLoggedIn(true);
+              resolve(tokenResponse.access_token);
             }
           },
         });
@@ -202,14 +207,44 @@ export default function UploadFileSection() {
     });
   };
 
-  const downloadFileFromDrive = async (fileId, accessToken) => {
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to download file: ${response.statusText}`);
+  const fetchGoogleUserInfo = async (token) => {
+    setLoading(true);
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      console.log(data);
+      setUserInfo(data);
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    } finally {
+      setLoading(false);
     }
-    return await response.blob();
+  };
+
+  const logout = () => {
+    localStorage.removeItem('accessToken');
+    setAccessToken(null); // set access google account
+    setUserInfo(null); // set user info
+    setIsLoggedIn(false); // set if loggin 
+    console.log("Đã đăng xuất, vui lòng đăng nhập lại.");
+  };
+  const downloadFileFromDrive = async (fileId, token) => {
+    try {
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.statusText}`);
+      }
+
+      return await response.blob();
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      throw error;
+    }
   };
 
   const handleOpenPicker = () => {
@@ -233,7 +268,7 @@ export default function UploadFileSection() {
                 return new File([fileContent], file.name, { type: file.mimeType });
               })
             );
-            handleUploadFiles(driveFiles);
+            handleUploadFiles(driveFiles); // Function to handle uploaded files
           } catch (error) {
             console.error("Failed to download files from Google Drive:", error);
           }
@@ -244,7 +279,6 @@ export default function UploadFileSection() {
     });
   };
 
-  
 
 
   useEffect(() => {
@@ -274,17 +308,18 @@ export default function UploadFileSection() {
     }
   }, [scrollPosition]);
 
+
   return (
     <Flex direction="column" h="100%">
       <Flex p="md" justify="space-between">
-
         <Menu shadow="md" width={200} position="bottom-start" keepMounted>
           <Menu.Target>
-            <Button radius="xl">Upload Menu</Button>
+            <Button radius="xl" color="#868e96" leftSection={<IoMdArrowDropdown />} >
+              {userInfo ? userInfo.email.slice(0, 1).toUpperCase() : 'Upload Menu'}
+            </Button>
           </Menu.Target>
 
           <Menu.Dropdown>
-
             <FileButton
               leftSection={<IoIosCloudUpload />}
               radius="xl"
@@ -320,6 +355,16 @@ export default function UploadFileSection() {
               )}
             </FileButton>
 
+
+            <Menu.Item
+              onClick={logout}
+              leftSection={<IoIosLogOut style={{ width: rem(14), height: rem(14) }} />}
+              style={{
+                color: isLoggedIn ? 'red' : 'initial', // Change color if login already
+              }}
+            >
+              Logout
+            </Menu.Item>
           </Menu.Dropdown>
         </Menu>
 
