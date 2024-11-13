@@ -10,11 +10,17 @@ import {
   Skeleton,
   Title,
   rem,
-  Menu
+  Menu,
 } from "@mantine/core";
-import { FaGoogleDrive, } from "react-icons/fa";
+import { FaGoogleDrive } from "react-icons/fa";
 import { MdComputer } from "react-icons/md";
-import { IoIosCloudUpload, IoIosSearch, IoMdClose, IoIosLogOut, IoMdArrowDropdown } from "react-icons/io";
+import {
+  IoIosCloudUpload,
+  IoIosSearch,
+  IoMdClose,
+  IoIosLogOut,
+  IoMdArrowDropdown,
+} from "react-icons/io";
 import { IoFilter } from "react-icons/io5";
 import {
   fileAcceptance,
@@ -172,7 +178,9 @@ export default function UploadFileSection() {
     });
   };
 
-  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
+  const [accessToken, setAccessToken] = useState(
+    () => localStorage.getItem("accessToken") || null
+  );
   const [openPicker] = useDrivePicker();
   /** @type {[GoogleUserData, (GoogleUserData | null) => void]}] */
   const [userInfo, setUserInfo] = useState(null);
@@ -185,19 +193,21 @@ export default function UploadFileSection() {
       if (accessToken) {
         resolve(accessToken);
         fetchGoogleUserInfo(accessToken);
-        setIsLoggedIn(true); 
+        setIsLoggedIn(true);
       } else {
         const tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: '966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com',
-          scope: 'https://www.googleapis.com/auth/drive.readonly',
+          client_id:
+            "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
+          scope:
+            "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
           callback: (tokenResponse) => {
             if (tokenResponse.error) {
               reject("Authorization failed");
             } else {
-              localStorage.setItem('accessToken', tokenResponse.access_token);
+              localStorage.setItem("accessToken", tokenResponse.access_token);
               setAccessToken(tokenResponse.access_token);
               fetchGoogleUserInfo(tokenResponse.access_token);
-              setIsLoggedIn(true); 
+              setIsLoggedIn(true);
               resolve(tokenResponse.access_token);
             }
           },
@@ -211,14 +221,17 @@ export default function UploadFileSection() {
   const fetchGoogleUserInfo = async (token) => {
     setLoading(true);
     try {
-      const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
       console.log(data);
       setUserInfo(data);
     } catch (error) {
-      console.error('Error fetching user info:', error);
+      console.error("Error fetching user info:", error);
     } finally {
       setLoading(false);
     }
@@ -226,19 +239,22 @@ export default function UploadFileSection() {
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem('accessToken');
+    localStorage.removeItem("accessToken");
     setAccessToken(null); // set access google account
     setUserInfo(null); // set user info
-    setIsLoggedIn(false); // set if loggin 
+    setIsLoggedIn(false); // set if loggin
     console.log("Đã đăng xuất, vui lòng đăng nhập lại.");
   };
 
   // Download file from Google Drive
   const downloadFileFromDrive = async (fileId, token) => {
     try {
-      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to download file: ${response.statusText}`);
@@ -246,14 +262,15 @@ export default function UploadFileSection() {
 
       return await response.blob();
     } catch (error) {
-      console.error('Error downloading file:', error);
+      console.error("Error downloading file:", error);
       throw error;
     }
   };
 
   const handleOpenPicker = () => {
     openPicker({
-      clientId: "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
+      clientId:
+        "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
       developerKey: "AIzaSyAhj80NKqZRTeQOwHjKyXT3BSdwYZZ2UL0",
       scope: "https://www.googleapis.com/auth/drive.file",
       viewId: "DOCS",
@@ -262,14 +279,16 @@ export default function UploadFileSection() {
       supportDrives: true,
       multiselect: true,
       callbackFunction: async (data) => {
-        if (data.action === 'picked') {
+        if (data.action === "picked") {
           const files = data.docs;
           try {
             const token = await authorizeDrive(); // Obtain or reuse access token
             const driveFiles = await Promise.all(
               files.map(async (file) => {
                 const fileContent = await downloadFileFromDrive(file.id, token);
-                return new File([fileContent], file.name, { type: file.mimeType });
+                return new File([fileContent], file.name, {
+                  type: file.mimeType,
+                });
               })
             );
             handleUploadFiles(driveFiles); // Function to handle uploaded files
@@ -277,13 +296,11 @@ export default function UploadFileSection() {
             console.error("Failed to download files from Google Drive:", error);
           }
         } else {
-          console.log('User canceled Google Drive picker');
+          console.log("User canceled Google Drive picker");
         }
       },
     });
   };
-
-
 
   useEffect(() => {
     setFilePageIndex(0);
@@ -298,7 +315,7 @@ export default function UploadFileSection() {
   useEffect(() => {
     if (
       Math.ceil(scrollPosition.y + scrollElement.current?.clientHeight) ===
-      scrollViewport.current?.scrollHeight &&
+        scrollViewport.current?.scrollHeight &&
       fileTotalPages > filePageIndex
     ) {
       setFilePageIndex(filePageIndex + 1);
@@ -312,14 +329,42 @@ export default function UploadFileSection() {
     }
   }, [scrollPosition]);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      localStorage.removeItem("accessToken");
+      e.preventDefault();
+      e.returnValue =
+        "You are about to leave the page, and the accessToken will be deleted. You will need to log in again once you return.";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      alert(
+        "Note: If you refresh or close the page, you will need to log in again because the token will be deleted."
+      );
+    }
+  }, [isLoggedIn]);
 
   return (
     <Flex direction="column" h="100%">
       <Flex p="md" justify="space-between">
         <Menu shadow="md" width={200} position="bottom-start" keepMounted>
           <Menu.Target>
-            <Button radius="xl" color="#868e96" leftSection={<IoMdArrowDropdown />} >
-              {userInfo ? userInfo.email : 'Upload Menu'}
+            <Button
+              radius="xl"
+              color="#868e96"
+              leftSection={<IoMdArrowDropdown />}
+            >
+              {userInfo
+                ? userInfo.email.split("@")[0].toUpperCase()
+                : "Upload Menu"}
             </Button>
           </Menu.Target>
 
@@ -335,7 +380,12 @@ export default function UploadFileSection() {
               }}
             >
               {(props) => (
-                <Menu.Item {...props} leftSection={<MdComputer style={{ width: rem(14), height: rem(14) }} />}>
+                <Menu.Item
+                  {...props}
+                  leftSection={
+                    <MdComputer style={{ width: rem(14), height: rem(14) }} />
+                  }
+                >
                   Upload from computer
                 </Menu.Item>
               )}
@@ -353,18 +403,26 @@ export default function UploadFileSection() {
               }}
             >
               {(props) => (
-                <Menu.Item {...props} leftSection={<FaGoogleDrive style={{ width: rem(14), height: rem(14) }} />}>
+                <Menu.Item
+                  {...props}
+                  leftSection={
+                    <FaGoogleDrive
+                      style={{ width: rem(14), height: rem(14) }}
+                    />
+                  }
+                >
                   Upload from Google Drive
                 </Menu.Item>
               )}
             </FileButton>
 
-
             <Menu.Item
               onClick={logout}
-              leftSection={<IoIosLogOut style={{ width: rem(14), height: rem(14) }} />}
+              leftSection={
+                <IoIosLogOut style={{ width: rem(14), height: rem(14) }} />
+              }
               style={{
-                color: isLoggedIn ? 'red' : 'initial', // Change color if login already
+                color: isLoggedIn ? "red" : "initial", // Change color if login already
               }}
             >
               Logout
@@ -442,18 +500,18 @@ export default function UploadFileSection() {
           <Grid w="100%" breakpoints={gridBreakpoints}>
             {files.length
               ? files.map((file) => (
-                <Grid.Col key={file.id} span={gridSpan}>
-                  <FileCard
-                    fileName={formatLongFileName(file.fileName, 15)}
-                    fileType={file.fileType}
-                    uploadedDate={file.uploadedDate}
-                    status={file.status}
-                    thumbnail=""
-                    onDelete={() => handleDeleteFile(file.id)}
-                    onOpen={() => navigator(`/file/${file.id}`)}
-                  />
-                </Grid.Col>
-              ))
+                  <Grid.Col key={file.id} span={gridSpan}>
+                    <FileCard
+                      fileName={formatLongFileName(file.fileName, 15)}
+                      fileType={file.fileType}
+                      uploadedDate={file.uploadedDate}
+                      status={file.status}
+                      thumbnail=""
+                      onDelete={() => handleDeleteFile(file.id)}
+                      onOpen={() => navigator(`/file/${file.id}`)}
+                    />
+                  </Grid.Col>
+                ))
               : null}
             {fileLoading ? <GetSkeletonFiles /> : null}
           </Grid>
