@@ -97,6 +97,14 @@ export default function UploadFileSection() {
   const [filePageIndex, setFilePageIndex] = useState(0);
   const [fileTotalPages, setFileTotalPages] = useState(0);
 
+  // User Infomation and Log In Page State
+  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
+  const [openPicker] = useDrivePicker();
+  /** @type {[GoogleUserData, (GoogleUserData | null) => void]}] */
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   /** @param {File[]} selectedFiles */
   const handleUploadFiles = (selectedFiles) => {
     if (selectedFiles.length) {
@@ -178,11 +186,7 @@ export default function UploadFileSection() {
     });
   };
 
-  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
-  const [openPicker] = useDrivePicker();
-  const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
 
   // Authorize Google Drive
   const authorizeDrive = () => {
@@ -190,7 +194,7 @@ export default function UploadFileSection() {
       if (accessToken) {
         resolve(accessToken);
         fetchGoogleUserInfo(accessToken);
-        setIsLoggedIn(true); 
+        setIsLoggedIn(true);
       } else {
         const tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: '966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com',
@@ -202,7 +206,7 @@ export default function UploadFileSection() {
               localStorage.setItem('accessToken', tokenResponse.access_token);
               setAccessToken(tokenResponse.access_token);
               fetchGoogleUserInfo(tokenResponse.access_token);
-              setIsLoggedIn(true); 
+              setIsLoggedIn(true);
               resolve(tokenResponse.access_token);
             }
           },
@@ -276,7 +280,7 @@ export default function UploadFileSection() {
                 return new File([fileContent], file.name, { type: file.mimeType });
               })
             );
-            handleUploadFiles(driveFiles); 
+            handleUploadFiles(driveFiles);
           } catch (error) {
             console.error("Failed to download files from Google Drive:", error);
           }
@@ -347,7 +351,7 @@ export default function UploadFileSection() {
       setFiles(JSON.parse(savedFiles)); // Upload state from localStorage
     }
   }, []);
-  
+
 
   return (
     <Flex direction="column" h="100%">
@@ -405,120 +409,120 @@ export default function UploadFileSection() {
           </Menu.Dropdown>
         </Menu>
 
-                <Flex gap={10}>
-                  <Popover shadow="md" width={200} position="bottom" radius="md">
-                    <Popover.Target>
-                      <Button
-                        color="gray"
-                        variant={
-                          fileTypeFilter.length || fileStatusFilter.length
-                            ? "filled"
-                            : "outline"
-                        }
-                        radius="xl"
-                        leftSection={<IoFilter />}
-                      >
-                        Filter
-                      </Button>
-                    </Popover.Target>
-                    <Popover.Dropdown>
-                      <Flex direction="column" gap={20}>
-                        <Title order={6}>File Type</Title>
-                        <Checkbox.Group
-                          value={fileTypeFilter}
-                          onChange={setFileTypeFilter}
-                        >
-                          <Flex direction="column" gap={10}>
-                            <Checkbox label="PDF" value="pdf" radius="md" />
-                            <Checkbox label="DOCX" value="docx" radius="md" />
-                            <Checkbox label="TXT" value="txt" radius="md" />
-                          </Flex>
-                        </Checkbox.Group>
-                        <Title order={6}>Status</Title>
-                        <Checkbox.Group
-                          value={fileStatusFilter}
-                          onChange={setFileStatusFilter}
-                        >
-                          <Flex direction="column" gap={10}>
-                            <Checkbox label="Pending" value="pending" radius="md" />
-                            <Checkbox label="Uploading" value="uploading" radius="md" />
-                            <Checkbox
-                              label="Processing"
-                              value="processing"
-                              radius="md"
-                            />
-                            <Checkbox label="Success" value="success" radius="md" />
-                            <Checkbox label="Error" value="error" radius="md" />
-                          </Flex>
-                        </Checkbox.Group>
-                      </Flex>
-                    </Popover.Dropdown>
-                  </Popover>
-                  <Input
-                    placeholder="Search"
-                    radius="xl"
-                    leftSection={<IoIosSearch />}
-                    value={fileSearch}
-                    onChange={(event) => setFileSearch(event.currentTarget.value)}
-                  />
-                </Flex>
-              </Flex>
-      {
-              files.length || fileLoading ? (
-                <ScrollArea
-                  ref={scrollElement}
-                  viewportRef={scrollViewport}
-                  px="md"
-                  h="100%"
-                  scrollbars="y"
-                  onScrollPositionChange={onScrollPositionChange}
+        <Flex gap={10}>
+          <Popover shadow="md" width={200} position="bottom" radius="md">
+            <Popover.Target>
+              <Button
+                color="gray"
+                variant={
+                  fileTypeFilter.length || fileStatusFilter.length
+                    ? "filled"
+                    : "outline"
+                }
+                radius="xl"
+                leftSection={<IoFilter />}
+              >
+                Filter
+              </Button>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Flex direction="column" gap={20}>
+                <Title order={6}>File Type</Title>
+                <Checkbox.Group
+                  value={fileTypeFilter}
+                  onChange={setFileTypeFilter}
                 >
-                  <Grid w="100%" breakpoints={gridBreakpoints}>
-                    {files.length
-                      ? files.map((file) => (
-                        <Grid.Col key={file.id} span={gridSpan}>
-                          <FileCard
-                            fileName={formatLongFileName(file.fileName, 15)}
-                            fileType={file.fileType}
-                            uploadedDate={file.uploadedDate}
-                            status={file.status}
-                            thumbnail=""
-                            onDelete={() => handleDeleteFile(file.id)}
-                            onOpen={() => navigator(`/file/${file.id}`)}
-                          />
-                        </Grid.Col>
-                      ))
-                      : null}
-                    {fileLoading ? <GetSkeletonFiles /> : null}
-                  </Grid>
-                </ScrollArea>
-              ) : (
-              <Flex h="100%" justify="center" align="center">
-                <Empty text="No files uploaded" />
+                  <Flex direction="column" gap={10}>
+                    <Checkbox label="PDF" value="pdf" radius="md" />
+                    <Checkbox label="DOCX" value="docx" radius="md" />
+                    <Checkbox label="TXT" value="txt" radius="md" />
+                  </Flex>
+                </Checkbox.Group>
+                <Title order={6}>Status</Title>
+                <Checkbox.Group
+                  value={fileStatusFilter}
+                  onChange={setFileStatusFilter}
+                >
+                  <Flex direction="column" gap={10}>
+                    <Checkbox label="Pending" value="pending" radius="md" />
+                    <Checkbox label="Uploading" value="uploading" radius="md" />
+                    <Checkbox
+                      label="Processing"
+                      value="processing"
+                      radius="md"
+                    />
+                    <Checkbox label="Success" value="success" radius="md" />
+                    <Checkbox label="Error" value="error" radius="md" />
+                  </Flex>
+                </Checkbox.Group>
               </Flex>
-            )
-            }
-            <Dropzone.FullScreen
-              active={true}
-              accept={fileAcceptance.split(",")}
-              onDrop={(selectedFiles) => {
-                handleUploadFiles(selectedFiles);
-                setFiles([...parseFileObject(selectedFiles), ...files]);
-              }}
-            >
-              <Dropzone.Accept>
-                <Flex direction="column" justify="center" align="center">
-                  <IoIosCloudUpload size={48} />
-                  <Title order={5}>Drop files here</Title>
-                </Flex>
-              </Dropzone.Accept>
-              <Dropzone.Reject>
-                <Flex direction="column" justify="center" align="center">
-                  <IoMdClose size={48} />
-                  <Title order={5}>File type not supported</Title>
-                </Flex>
-              </Dropzone.Reject>
-            </Dropzone.FullScreen>
+            </Popover.Dropdown>
+          </Popover>
+          <Input
+            placeholder="Search"
+            radius="xl"
+            leftSection={<IoIosSearch />}
+            value={fileSearch}
+            onChange={(event) => setFileSearch(event.currentTarget.value)}
+          />
+        </Flex>
+      </Flex>
+      {
+        files.length || fileLoading ? (
+          <ScrollArea
+            ref={scrollElement}
+            viewportRef={scrollViewport}
+            px="md"
+            h="100%"
+            scrollbars="y"
+            onScrollPositionChange={onScrollPositionChange}
+          >
+            <Grid w="100%" breakpoints={gridBreakpoints}>
+              {files.length
+                ? files.map((file) => (
+                  <Grid.Col key={file.id} span={gridSpan}>
+                    <FileCard
+                      fileName={formatLongFileName(file.fileName, 15)}
+                      fileType={file.fileType}
+                      uploadedDate={file.uploadedDate}
+                      status={file.status}
+                      thumbnail=""
+                      onDelete={() => handleDeleteFile(file.id)}
+                      onOpen={() => navigator(`/file/${file.id}`)}
+                    />
+                  </Grid.Col>
+                ))
+                : null}
+              {fileLoading ? <GetSkeletonFiles /> : null}
+            </Grid>
+          </ScrollArea>
+        ) : (
+          <Flex h="100%" justify="center" align="center">
+            <Empty text="No files uploaded" />
+          </Flex>
+        )
+      }
+      <Dropzone.FullScreen
+        active={true}
+        accept={fileAcceptance.split(",")}
+        onDrop={(selectedFiles) => {
+          handleUploadFiles(selectedFiles);
+          setFiles([...parseFileObject(selectedFiles), ...files]);
+        }}
+      >
+        <Dropzone.Accept>
+          <Flex direction="column" justify="center" align="center">
+            <IoIosCloudUpload size={48} />
+            <Title order={5}>Drop files here</Title>
+          </Flex>
+        </Dropzone.Accept>
+        <Dropzone.Reject>
+          <Flex direction="column" justify="center" align="center">
+            <IoMdClose size={48} />
+            <Title order={5}>File type not supported</Title>
+          </Flex>
+        </Dropzone.Reject>
+      </Dropzone.FullScreen>
     </Flex >
   );
 }
