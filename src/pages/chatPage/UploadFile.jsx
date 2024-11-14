@@ -34,7 +34,7 @@ import { Dropzone } from "@mantine/dropzone";
 import { deleteFile, getFiles, uploadFiles } from "../../apis/files";
 import useGlobalStore from "../../context/global";
 import { formatLongFileName, formatDateString } from "../../utils/utilities";
-import { notifications } from "@mantine/notifications";
+import { notifications, showNotification } from "@mantine/notifications";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useNavigate } from "react-router-dom";
 import useDrivePicker from "react-google-drive-picker";
@@ -304,7 +304,7 @@ export default function UploadFileSection() {
   useEffect(() => {
     if (
       Math.ceil(scrollPosition.y + scrollElement.current?.clientHeight) ===
-      scrollViewport.current?.scrollHeight &&
+        scrollViewport.current?.scrollHeight &&
       fileTotalPages > filePageIndex
     ) {
       setFilePageIndex(filePageIndex + 1);
@@ -321,22 +321,28 @@ export default function UploadFileSection() {
   // Inform user if accessToken will be removed on refresh or close
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem("accessToken");
       e.preventDefault();
-      e.returnValue = 'You are about to leave the page, and the accessToken will be deleted. You will need to log in again once you return.';
+      e.returnValue =
+        "You are about to leave the page, and the accessToken will be deleted. You will need to log in again once you return.";
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
 
-  // Alert when user logs in
   useEffect(() => {
     if (isLoggedIn) {
-      alert("Note: If you refresh or close the page, you will need to log in again because the token will be deleted.");
+      showNotification({
+        title: "Attention",
+        message:
+          "If you refresh or close the page, you will need to log in again because the token will be deleted.",
+        color: "green",
+        autoClose: 5000,
+      });
     }
   }, [isLoggedIn]);
 
@@ -375,7 +381,12 @@ export default function UploadFileSection() {
               }}
             >
               {(props) => (
-                <Menu.Item {...props} leftSection={<MdComputer style={{ width: '14px', height: '14px' }} />}>
+                <Menu.Item
+                  {...props}
+                  leftSection={
+                    <MdComputer style={{ width: "14px", height: "14px" }} />
+                  }
+                >
                   Upload from computer
                 </Menu.Item>
               )}
@@ -392,7 +403,12 @@ export default function UploadFileSection() {
               }}
             >
               {(props) => (
-                <Menu.Item {...props} leftSection={<FaGoogleDrive style={{ width: 14, height: 14 }} />}>
+                <Menu.Item
+                  {...props}
+                  leftSection={
+                    <FaGoogleDrive style={{ width: 14, height: 14 }} />
+                  }
+                >
                   Upload from Google Drive
                 </Menu.Item>
               )}
@@ -400,9 +416,11 @@ export default function UploadFileSection() {
 
             <Menu.Item
               onClick={logout}
-              leftSection={<IoIosLogOut style={{ width: '14px', height: '14px' }} />}
+              leftSection={
+                <IoIosLogOut style={{ width: "14px", height: "14px" }} />
+              }
               style={{
-                color: isLoggedIn ? 'red' : 'initial',
+                color: isLoggedIn ? "red" : "initial",
               }}
             >
               Logout
