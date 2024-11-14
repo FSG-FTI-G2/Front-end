@@ -34,7 +34,7 @@ import { Dropzone } from "@mantine/dropzone";
 import { deleteFile, getFiles, uploadFiles } from "../../apis/files";
 import useGlobalStore from "../../context/global";
 import { formatLongFileName, formatDateString } from "../../utils/utilities";
-import { notifications } from "@mantine/notifications";
+import { notifications, showNotification } from "@mantine/notifications";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useNavigate } from "react-router-dom";
 import useDrivePicker from "react-google-drive-picker";
@@ -347,9 +347,13 @@ export default function UploadFileSection() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      alert(
-        "Note: If you refresh or close the page, you will need to log in again because the token will be deleted."
-      );
+      showNotification({
+        title: "Attention",
+        message:
+          "If you refresh or close the page, you will need to log in again because the token will be deleted.",
+        color: "green",
+        autoClose: 5000,
+      });
     }
   }, [isLoggedIn]);
 
