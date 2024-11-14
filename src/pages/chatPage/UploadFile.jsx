@@ -352,6 +352,18 @@ export default function UploadFileSection() {
     }
   }, [isLoggedIn]);
 
+  useEffect(() => {
+    // Save file to localStorage if file change
+    localStorage.setItem("uploadedFiles", JSON.stringify(files));
+  }, [files]);
+
+  useEffect(() => {
+    const savedFiles = localStorage.getItem("uploadedFiles");
+    if (savedFiles) {
+      setFiles(JSON.parse(savedFiles)); // Upload state from localStorage
+    }
+  }, []);
+
   return (
     <Flex direction="column" h="100%">
       <Flex p="md" justify="space-between">
