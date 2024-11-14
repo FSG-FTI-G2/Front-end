@@ -179,13 +179,13 @@ export default function UploadFileSection() {
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-
+  // Authorize Google Drive
   const authorizeDrive = () => {
     return new Promise((resolve, reject) => {
       if (accessToken) {
         resolve(accessToken);
         fetchGoogleUserInfo(accessToken);
-        setIsLoggedIn(true);
+        setIsLoggedIn(true); 
       } else {
         const tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: '966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com',
@@ -197,7 +197,7 @@ export default function UploadFileSection() {
               localStorage.setItem('accessToken', tokenResponse.access_token);
               setAccessToken(tokenResponse.access_token);
               fetchGoogleUserInfo(tokenResponse.access_token);
-              setIsLoggedIn(true);
+              setIsLoggedIn(true); 
               resolve(tokenResponse.access_token);
             }
           },
@@ -207,6 +207,7 @@ export default function UploadFileSection() {
     });
   };
 
+  // Fetch Google User Info
   const fetchGoogleUserInfo = async (token) => {
     setLoading(true);
     try {
@@ -223,6 +224,7 @@ export default function UploadFileSection() {
     }
   };
 
+  // Logout function
   const logout = () => {
     localStorage.removeItem('accessToken');
     setAccessToken(null); // set access google account
@@ -230,6 +232,8 @@ export default function UploadFileSection() {
     setIsLoggedIn(false); // set if loggin 
     console.log("Đã đăng xuất, vui lòng đăng nhập lại.");
   };
+
+  // Download file from Google Drive
   const downloadFileFromDrive = async (fileId, token) => {
     try {
       const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
@@ -315,7 +319,7 @@ export default function UploadFileSection() {
         <Menu shadow="md" width={200} position="bottom-start" keepMounted>
           <Menu.Target>
             <Button radius="xl" color="#868e96" leftSection={<IoMdArrowDropdown />} >
-              {userInfo ? userInfo.email.slice(0, 1).toUpperCase() : 'Upload Menu'}
+              {userInfo ? userInfo.email : 'Upload Menu'}
             </Button>
           </Menu.Target>
 
