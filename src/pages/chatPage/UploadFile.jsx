@@ -97,6 +97,16 @@ export default function UploadFileSection() {
   const [filePageIndex, setFilePageIndex] = useState(0);
   const [fileTotalPages, setFileTotalPages] = useState(0);
 
+  // User Infomation and Log In Page State
+  const [accessToken, setAccessToken] = useState(
+    () => localStorage.getItem("accessToken") || null
+  );
+  const [openPicker] = useDrivePicker();
+  /** @type {[GoogleUserData, (GoogleUserData | null) => void]}] */
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   /** @param {File[]} selectedFiles */
   const handleUploadFiles = (selectedFiles) => {
     if (selectedFiles.length) {
@@ -177,15 +187,6 @@ export default function UploadFileSection() {
         }),
     });
   };
-
-  const [accessToken, setAccessToken] = useState(
-    () => localStorage.getItem("accessToken") || null
-  );
-  const [openPicker] = useDrivePicker();
-  /** @type {[GoogleUserData, (GoogleUserData | null) => void]}] */
-  const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Authorize Google Drive
   const authorizeDrive = () => {
