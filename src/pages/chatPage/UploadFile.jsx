@@ -340,15 +340,16 @@ export default function UploadFileSection() {
     }
   }, [isLoggedIn]);
 
+  // Save file to localStorage if file change
   useEffect(() => {
-    // Save file to localStorage if file change
     localStorage.setItem('uploadedFiles', JSON.stringify(files));
   }, [files]);
 
+  // Upload state from localStorage
   useEffect(() => {
     const savedFiles = localStorage.getItem('uploadedFiles');
     if (savedFiles) {
-      setFiles(JSON.parse(savedFiles)); // Upload state from localStorage
+      setFiles(JSON.parse(savedFiles)); 
     }
   }, []);
 
