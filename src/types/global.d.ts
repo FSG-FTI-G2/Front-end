@@ -88,9 +88,40 @@ interface ChatData {
   role_prompt: string;
 }
 
+// Google Data
+
+interface GoogleAuthToken {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string;
+  token_type: string;
+}
+
+interface GoogleDrivePickerDoc {
+  description: string;
+  embedUrl: string;
+  iconUrl: string;
+  id: string;
+  isShared: boolean;
+  lastEditedUtc: number;
+  mimeType: string;
+  name: string;
+  serviceId: string;
+  sizeBytes: number;
+  type: string;
+  url: string;
+}
+
+interface GoogleDrivePickerData {
+  action: string;
+  docs?: Array<GoogleDrivePickerDoc>;
+  viewToken?: Array<any>;
+}
+
 interface GoogleUserData {
-  id : string;
-  email : string;
-  picture : string;
-  verified_email : boolean
+  id: string;
+  email: string;
+  picture: string;
+  verified_email: boolean;
 }

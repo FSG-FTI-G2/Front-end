@@ -9,8 +9,8 @@ import {
   ScrollArea,
   Skeleton,
   Title,
-  rem,
   Menu,
+  ActionIcon,
 } from "@mantine/core";
 import { FaGoogleDrive } from "react-icons/fa";
 import { MdComputer } from "react-icons/md";
@@ -19,25 +19,34 @@ import {
   IoIosSearch,
   IoMdClose,
   IoIosLogOut,
-  IoMdArrowDropdown,
+  IoMdAdd,
 } from "react-icons/io";
 import { IoFilter } from "react-icons/io5";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Dropzone } from "@mantine/dropzone";
+import { notifications } from "@mantine/notifications";
+import { useDebouncedValue } from "@mantine/hooks";
+import { useNavigate } from "react-router-dom";
+import useDrivePicker from "react-google-drive-picker";
+import FileCard from "../../components/FileCard";
+import Empty from "../../components/Empty";
 import {
+  downloadFilesFromDrive,
+  getGoogleAccessToken,
+  getGoogleUserInfo,
+  googleAuthenticator,
+  removeGoogleAccessToken,
+  setGoogleAccessToken,
+} from "../../apis/googleDrive";
+import { deleteFile, getFiles, uploadFiles } from "../../apis/files";
+import useGlobalStore from "../../context/global";
+import { formatLongFileName, formatDateString } from "../../utils/utilities";
+import {
+  drivePickerConfig,
   fileAcceptance,
   gridBreakpoints,
   gridSpan,
 } from "../../utils/constants";
-import { useEffect, useRef, useState } from "react";
-import FileCard from "../../components/FileCard";
-import Empty from "../../components/Empty";
-import { Dropzone } from "@mantine/dropzone";
-import { deleteFile, getFiles, uploadFiles } from "../../apis/files";
-import useGlobalStore from "../../context/global";
-import { formatLongFileName, formatDateString } from "../../utils/utilities";
-import { notifications, showNotification } from "@mantine/notifications";
-import { useDebouncedValue } from "@mantine/hooks";
-import { useNavigate } from "react-router-dom";
-import useDrivePicker from "react-google-drive-picker";
 
 /**
  * @param {File[]} selectedFiles
@@ -97,212 +106,169 @@ export default function UploadFileSection() {
   const [filePageIndex, setFilePageIndex] = useState(0);
   const [fileTotalPages, setFileTotalPages] = useState(0);
 
-  // User Infomation and Log In Page State
-  const [accessToken, setAccessToken] = useState(
-    () => localStorage.getItem("accessToken") || null
-  );
-  const [openPicker] = useDrivePicker();
-  /** @type {[GoogleUserData, (GoogleUserData | null) => void]}] */
-  const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Google User State
+  const [openGoogleDrivePicker] = useDrivePicker();
+  const googleUser = useGlobalStore((state) => state.googleUser);
+  const setGoogleUser = useGlobalStore((state) => state.setGoogleUser);
 
-  /** @param {File[]} selectedFiles */
-  const handleUploadFiles = (selectedFiles) => {
-    if (selectedFiles.length) {
-      uploadFiles({
-        files: selectedFiles,
-        onProgress: (progressData) => setFilesStatus(progressData.status),
-        onSuccess: (progressData) => {
-          setFilesStatus(progressData.status);
-          handleViewFiles();
+  const handleUploadFiles = useCallback(
+    /** @param {File[]} selectedFiles */
+    (selectedFiles) => {
+      // Update displayed files
+      setFiles([...parseFileObject(selectedFiles), ...files]);
+
+      // Upload files
+      if (selectedFiles.length) {
+        uploadFiles({
+          files: selectedFiles,
+          onProgress: (progressData) => setFilesStatus(progressData.status),
+          onSuccess: (progressData) => {
+            setFilesStatus(progressData.status);
+            handleViewFiles();
+          },
+          onFail: (message) =>
+            notifications.show({
+              title: "Something went wrong!",
+              message: message,
+              color: "red",
+            }),
+        });
+      }
+    },
+    [files]
+  );
+
+  const handleViewFiles = useCallback(
+    /**
+     * @param {number} pageIndex
+     * @param {string} search
+     * @param {string} type
+     * @param {string} status
+     * @param {boolean} concatFiles
+     */
+    (pageIndex, search, type, status, concatFiles = false) => {
+      setFileLoading(true);
+      getFiles({
+        pageIndex: pageIndex,
+        search: search,
+        fileType: type,
+        status: status,
+        onSuccess: (data) => {
+          setFileTotalPages(data.total_pages);
+          if (concatFiles) {
+            setFiles([...files, ...parseFileData(data.data)]);
+          } else {
+            setFiles(parseFileData(data.data));
+          }
+          setFileLoading(false);
         },
-        onFail: (message) =>
+        onFail: (message) => {
           notifications.show({
             title: "Something went wrong!",
             message: message,
             color: "red",
+          });
+          setFileLoading(false);
+        },
+      });
+    },
+    [files]
+  );
+
+  const handleDeleteFile = useCallback(
+    /** @param {string} id */
+    (id) => {
+      deleteFile({
+        id,
+        onSuccess: (message) => {
+          notifications.show({
+            title: "Delete",
+            message: message,
+            color: "green",
+          });
+          setFiles(files.filter((file) => file.id !== id));
+        },
+        onFail: (message) =>
+          notifications.show({
+            title: "Error",
+            message: message,
+            color: "red",
           }),
       });
-    }
-  };
+    },
+    [files]
+  );
 
-  /**
-   * @param {number} pageIndex
-   * @param {string} search
-   * @param {string} type
-   * @param {string} status
-   * @param {boolean} concatFiles
-   */
-  const handleViewFiles = (
-    pageIndex,
-    search,
-    type,
-    status,
-    concatFiles = false
-  ) => {
-    setFileLoading(true);
-    getFiles({
-      pageIndex: pageIndex,
-      search: search,
-      fileType: type,
-      status: status,
-      onSuccess: (data) => {
-        setFileTotalPages(data.total_pages);
-        if (concatFiles) {
-          setFiles([...files, ...parseFileData(data.data)]);
-        } else {
-          setFiles(parseFileData(data.data));
-        }
-        setFileLoading(false);
-      },
-      onFail: (message) => {
-        notifications.show({
-          title: "Something went wrong!",
-          message: message,
-          color: "red",
-        });
-        setFileLoading(false);
-      },
-    });
-  };
-
-  /** @param {string} id */
-  const handleDeleteFile = (id) => {
-    deleteFile({
-      id,
-      onSuccess: (message) => {
-        notifications.show({
-          title: "Delete",
-          message: message,
-          color: "green",
-        });
-        setFiles(files.filter((file) => file.id !== id));
-      },
-      onFail: (message) =>
-        notifications.show({
-          title: "Error",
-          message: message,
-          color: "red",
-        }),
-    });
-  };
-
-  // Authorize Google Drive
-  const authorizeDrive = () => {
-    return new Promise((resolve, reject) => {
-      if (accessToken) {
-        resolve(accessToken);
-        fetchGoogleUserInfo(accessToken);
-        setIsLoggedIn(true);
-      } else {
-        const tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id:
-            "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
-          scope:
-            "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
-          callback: (tokenResponse) => {
-            if (tokenResponse.error) {
-              reject("Authorization failed");
-            } else {
-              localStorage.setItem("accessToken", tokenResponse.access_token);
-              setAccessToken(tokenResponse.access_token);
-              fetchGoogleUserInfo(tokenResponse.access_token);
-              setIsLoggedIn(true);
-              resolve(tokenResponse.access_token);
-            }
-          },
-        });
-        tokenClient.requestAccessToken();
-      }
-    });
-  };
-
-  // Fetch Google User Info
-  const fetchGoogleUserInfo = async (token) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await response.json();
-      console.log(data);
-      setUserInfo(data);
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem("accessToken");
-    setAccessToken(null); // set access google account
-    setUserInfo(null); // set user info
-    setIsLoggedIn(false); // set if loggin
-    console.log("Đã đăng xuất, vui lòng đăng nhập lại.");
-  };
-
-  // Download file from Google Drive
-  const downloadFileFromDrive = async (fileId, token) => {
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to download file: ${response.statusText}`);
-      }
-
-      return await response.blob();
-    } catch (error) {
-      console.error("Error downloading file:", error);
-      throw error;
-    }
-  };
-
-  const handleOpenPicker = () => {
-    openPicker({
-      clientId:
-        "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com",
-      developerKey: "AIzaSyAhj80NKqZRTeQOwHjKyXT3BSdwYZZ2UL0",
-      scope: "https://www.googleapis.com/auth/drive.file",
-      viewId: "DOCS",
-      showUploadView: true,
-      showUploadFolders: true,
-      supportDrives: true,
-      multiselect: true,
-      callbackFunction: async (data) => {
-        if (data.action === "picked") {
-          const files = data.docs;
-          try {
-            const token = await authorizeDrive(); // Obtain or reuse access token
-            const driveFiles = await Promise.all(
-              files.map(async (file) => {
-                const fileContent = await downloadFileFromDrive(file.id, token);
-                return new File([fileContent], file.name, {
-                  type: file.mimeType,
-                });
-              })
-            );
-            handleUploadFiles(driveFiles); // Function to handle uploaded files
-          } catch (error) {
-            console.error("Failed to download files from Google Drive:", error);
+  const handleOpenDrivePicker = useCallback(() => {
+    /** @param {string} accessToken */
+    function _handleOpenDrivePicker(accessToken) {
+      openGoogleDrivePicker({
+        ...drivePickerConfig,
+        token: accessToken,
+        /** @param {GoogleDrivePickerData} data */
+        callbackFunction: (data) => {
+          if (data.action == "picked") {
+            downloadFilesFromDrive({
+              pickedDocs: data,
+              accessToken: accessToken,
+              onSuccess: (selectedFiles) => {
+                handleUploadFiles(selectedFiles);
+                setFiles([...files, ...parseFileObject(selectedFiles)]);
+              },
+              onFail: (message) =>
+                notifications.show({
+                  title: "Error",
+                  message: message,
+                  color: "red",
+                }),
+            });
           }
-        } else {
-          console.log("User canceled Google Drive picker");
-        }
-      },
-    });
-  };
+        },
+      });
+    }
 
+    let accessToken = getGoogleAccessToken();
+    if (accessToken) {
+      _handleOpenDrivePicker(accessToken);
+    } else {
+      googleAuthenticator({
+        /** @param {GoogleAuthToken} credential */
+        onSuccess: (credential) => {
+          setGoogleAccessToken(credential.access_token);
+          getGoogleUserInfo({
+            accessToken: credential.access_token,
+            onSuccess: (data) => setGoogleUser(data),
+            onFail: (message) =>
+              notifications.show({
+                title: "Error",
+                message: message,
+                color: "red",
+              }),
+          });
+          _handleOpenDrivePicker(credential.access_token);
+        },
+        onFail: (message) => {
+          notifications.show({
+            title: "Error",
+            message: message,
+            color: "red",
+          });
+        },
+      });
+    }
+  }, [files, openGoogleDrivePicker, handleUploadFiles, setFiles]);
+
+  const handleGoogleLogout = useCallback(() => {
+    removeGoogleAccessToken();
+    setGoogleUser(null);
+    notifications.show({
+      title: "Logout",
+      message: "Logged out from Google",
+      color: "green",
+    });
+  }, []);
+
+  // Update displayed file based on search, filter, and pagination
   useEffect(() => {
     setFilePageIndex(0);
     handleViewFiles(
@@ -313,6 +279,7 @@ export default function UploadFileSection() {
     );
   }, [fileSearchDebounce, fileTypeFilter, fileStatusFilter]);
 
+  // Scroll to bottom to load more files
   useEffect(() => {
     if (
       Math.ceil(scrollPosition.y + scrollElement.current?.clientHeight) ===
@@ -330,58 +297,30 @@ export default function UploadFileSection() {
     }
   }, [scrollPosition]);
 
+  // Try to get google user data if access token is available
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      localStorage.removeItem("accessToken");
-      e.preventDefault();
-      e.returnValue =
-        "You are about to leave the page, and the accessToken will be deleted. You will need to log in again once you return.";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      showNotification({
-        title: "Attention",
-        message:
-          "If you refresh or close the page, you will need to log in again because the token will be deleted.",
-        color: "green",
-        autoClose: 5000,
+    const accessToken = getGoogleAccessToken();
+    if (accessToken) {
+      getGoogleUserInfo({
+        accessToken,
+        onSuccess: (data) => setGoogleUser(data),
+        onFail: (message) =>
+          notifications.show({
+            title: "Error",
+            message: message,
+            color: "red",
+          }),
       });
-    }
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    // Save file to localStorage if file change
-    localStorage.setItem("uploadedFiles", JSON.stringify(files));
-  }, [files]);
-
-  useEffect(() => {
-    const savedFiles = localStorage.getItem("uploadedFiles");
-    if (savedFiles) {
-      setFiles(JSON.parse(savedFiles)); // Upload state from localStorage
     }
   }, []);
 
   return (
     <Flex direction="column" h="100%">
       <Flex p="md" justify="space-between">
-        <Menu shadow="md" width={200} position="bottom-start" keepMounted>
+        <Menu shadow="md" width={300} position="bottom-start" keepMounted>
           <Menu.Target>
-            <Button
-              radius="xl"
-              color="#868e96"
-              leftSection={<IoMdArrowDropdown />}
-            >
-              {userInfo
-                ? userInfo.email.split("@")[0].toUpperCase()
-                : "Upload Menu"}
+            <Button radius="xl" leftSection={<IoMdAdd />} color="gray">
+              New
             </Button>
           </Menu.Target>
 
@@ -391,58 +330,41 @@ export default function UploadFileSection() {
               radius="xl"
               accept={fileAcceptance}
               multiple
-              onChange={(selectedFiles) => {
-                handleUploadFiles(selectedFiles);
-                setFiles([...parseFileObject(selectedFiles), ...files]);
-              }}
+              onChange={handleUploadFiles}
             >
               {(props) => (
-                <Menu.Item
-                  {...props}
-                  leftSection={
-                    <MdComputer style={{ width: rem(14), height: rem(14) }} />
-                  }
-                >
+                <Menu.Item {...props} leftSection={<MdComputer />}>
                   Upload from computer
                 </Menu.Item>
               )}
             </FileButton>
 
-            <FileButton
-              leftSection={<FaGoogleDrive style={{ width: 14, height: 14 }} />}
-              radius="xl"
-              onClick={async () => {
-                const filesFromDrive = await handleOpenPicker();
-                if (filesFromDrive) {
-                  handleUploadFiles(filesFromDrive);
-                  setFiles([...parseFileObject(filesFromDrive), ...files]);
-                }
-              }}
-            >
-              {(props) => (
-                <Menu.Item
-                  {...props}
-                  leftSection={
-                    <FaGoogleDrive
-                      style={{ width: rem(14), height: rem(14) }}
-                    />
-                  }
-                >
-                  Upload from Google Drive
-                </Menu.Item>
-              )}
-            </FileButton>
-
             <Menu.Item
-              onClick={logout}
-              leftSection={
-                <IoIosLogOut style={{ width: rem(14), height: rem(14) }} />
+              leftSection={<FaGoogleDrive />}
+              rightSection={
+                googleUser ? (
+                  <ActionIcon
+                    radius="md"
+                    color="red"
+                    variant="subtle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleGoogleLogout();
+                    }}
+                  >
+                    <IoIosLogOut />
+                  </ActionIcon>
+                ) : null
               }
-              style={{
-                color: isLoggedIn ? "red" : "initial", // Change color if login already
-              }}
+              onClick={handleOpenDrivePicker}
             >
-              Logout
+              <p>Upload from Google Drive</p>
+              {googleUser ? (
+                <p style={{ fontSize: 16, fontWeight: "bold" }}>
+                  {googleUser.email.split("@")[0]}
+                </p>
+              ) : null}
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>
@@ -541,10 +463,7 @@ export default function UploadFileSection() {
       <Dropzone.FullScreen
         active={true}
         accept={fileAcceptance.split(",")}
-        onDrop={(selectedFiles) => {
-          handleUploadFiles(selectedFiles);
-          setFiles([...parseFileObject(selectedFiles), ...files]);
-        }}
+        onDrop={handleUploadFiles}
       >
         <Dropzone.Accept>
           <Flex direction="column" justify="center" align="center">
