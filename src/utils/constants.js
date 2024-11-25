@@ -1,6 +1,20 @@
 // Localhost URL
 export const baseUrl = "http://localhost:7860";
 
+export const googleClientToken =
+  "966252714987-i9g0mr72tf7c1ae051o221heagbiegc4.apps.googleusercontent.com";
+
+export const googleDrivePermission =
+  "https://www.googleapis.com/auth/drive.file";
+
+export const drivePickerConfig = {
+  clientId: googleClientToken,
+  developerKey: "AIzaSyAhj80NKqZRTeQOwHjKyXT3BSdwYZZ2UL0",
+  scope: googleDrivePermission,
+  viewId: "DOCS",
+  multiselect: true,
+};
+
 export const apiUrls = {
   login: "/api/v1/auth/login",
   getCurrentUser: "/api/v1/auth/me",

@@ -15,6 +15,8 @@ import { create } from "zustand";
  * setChats: (chats: ChatData[]) => void;
  * setChatMessages: (chatId: string, messages: MessageData[]) => void;
  * reset: () => void;
+ * googleUser: GoogleUserData | null;
+ * setGoogleUser: (user: GoogleUserData) => void;
  * }} GlobalState
  */
 
@@ -62,6 +64,9 @@ const useGlobalStore = create((set) => ({
       llmConfig: null,
       chats: [],
     }),
+  // Google variables
+  googleUser: null,
+  setGoogleUser: (user) => set({ googleUser: user }),
 }));
 
 export default useGlobalStore;
