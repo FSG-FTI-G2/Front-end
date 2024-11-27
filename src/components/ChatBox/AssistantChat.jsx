@@ -1,49 +1,59 @@
 import {
   ActionIcon,
   Anchor,
+  Badge,
   CopyButton,
   Flex,
   List,
-  Text,
 } from "@mantine/core";
 import { useCallback, useEffect, useState } from "react";
 import { AiFillDislike, AiFillLike } from "react-icons/ai";
 import { IoCheckmarkOutline, IoCopyOutline } from "react-icons/io5";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import useGlobalStore from "../../context/global";
 
 /**
  * @param {{
  * content: string
+ * citations: Record<string, CitationData>
  * isSpawnToken: boolean
  * spawnCompleteCallback: () => void
- * onRefClick: (ref: string) => void
  * }} props
  * @returns {JSX.Element}
  */
 export default function AssistantChat({
   content,
+  citations = {},
   isSpawnToken = false,
   spawnCompleteCallback,
-  onRefClick,
 }) {
   const [displayedContent, setDisplayedContent] = useState("");
   const [isSpawnComplete, setIsSpawnComplete] = useState(false);
-  const [references, setReferences] = useState([]);
+  const files = useGlobalStore((state) => state.files);
 
   // Function to detect citations and replace with numbers
-  const processCitations = useCallback(
-    (text) => {
-      let refList = [];
-      let citationIndex = 1;
-      const transformedContent = text.replace(/\[(.*?)\]/g, (match, p1) => {
-        refList.push(p1.replace("File: ", "")); // Collect the citation link
-        return `**${citationIndex++}**`; // Replace with a numbered citation
-      });
-      setReferences(refList); // Store the reference list
-      return transformedContent;
+  const processCitations = useCallback((text) => {
+    const transformedContent = text.replace(/\[(.*?)\]/g, (match, p) => {
+      return `**${match}**`; // Replace with a numbered citation
+    });
+    return transformedContent;
+  }, []);
+
+  const getDocumentByCitation = useCallback(
+    /** @type {(documentId: string) => DisplayedFile | undefined} */
+    (documentId) => {
+      return files.find((file) => file.id === documentId);
     },
-    [setReferences]
+    [files]
+  );
+
+  const handleOpenRef = useCallback(
+    /** @type {(citation: CitationData) => void} */
+    (citation) => {
+      window.open(`/file/${citation.document}?ref=${citation.chunk}`, "_blank");
+    },
+    []
   );
 
   useEffect(() => {
@@ -84,11 +94,20 @@ export default function AssistantChat({
     <Flex p="md">
       <Flex direction="column" gap="xs">
         <Markdown remarkPlugins={[remarkGfm]}>{displayedContent}</Markdown>
-        {references.length > 0 && isSpawnComplete ? (
+        {Object.keys(citations).length > 0 && isSpawnComplete ? (
           <List type="ordered" size="sm">
-            {references.map((ref, index) => (
-              <List.Item key={index}>
-                <Anchor onClick={() => onRefClick(ref)}>{ref}</Anchor>
+            {Object.keys(citations).map((citeKey, index) => (
+              <List.Item
+                key={index}
+                icon={
+                  <Badge variant="light" size="sm">
+                    {citeKey.slice(1, -1)}
+                  </Badge>
+                }
+              >
+                <Anchor onClick={() => handleOpenRef(citations[citeKey])}>
+                  {getDocumentByCitation(citations[citeKey].document)?.fileName}
+                </Anchor>
               </List.Item>
             ))}
           </List>
