@@ -7,6 +7,8 @@ import {
   Menu,
   Skeleton,
   Title,
+  Loader,
+  Center,
 } from "@mantine/core";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { containerStyle } from "../styles/containerStyle";
@@ -108,7 +110,13 @@ export default function GeneralLayout() {
         </Flex>
       </Flex>
       <Flex p={10} gap={10} flex={1} h="calc(100% - 74px)">
-        <Outlet />
+        {user ? (
+          <Outlet />
+        ) : (
+          <Center h="100vh" w="100vw">
+            <Loader />
+          </Center>
+        )}
       </Flex>
     </Flex>
   );

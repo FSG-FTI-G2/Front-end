@@ -31,10 +31,8 @@ import HumanChat from "../../components/ChatBox/HumanChat";
 import LLMConfigModal from "../../components/ChatBox/LLMConfigModal";
 import MessageHistoryItem from "../../components/ChatBox/MessageHistoryItem";
 import ChatInput from "../../components/ChatBox/ChatInput";
-import { useNavigate } from "react-router-dom";
 
 export default function ChatBoxSection() {
-  const navigator = useNavigate();
   // LLM Model states
   const [modalOpened, { toggle: toggleModal }] = useDisclosure();
   const llmConfig = useGlobalStore((state) => state.llmConfig);
@@ -196,18 +194,6 @@ export default function ChatBoxSection() {
     [chats, setCurrentChatIndex, setChats]
   );
 
-  const handleOpenRef = useCallback(
-    /** @param {string} ref */
-    (ref) => {
-      // Find the files with the reference as name
-      const file = files.filter((file) => file.fileName === ref)[0];
-      if (file) {
-        navigator(`/file/${file.id}`);
-      }
-    },
-    [files]
-  );
-
   function GetMessageChatContents() {
     return chats[currentChatIndex]?.messages.length || temporalUserMessage ? (
       <Flex
@@ -226,9 +212,9 @@ export default function ChatBoxSection() {
             <AssistantChat
               key={index}
               content={message.content}
+              citations={message.additional_kwargs.citation}
               isSpawnToken={index === 0 && shouldSpawnToken}
               spawnCompleteCallback={() => setShouldSpawnToken(false)}
-              onRefClick={handleOpenRef}
             />
           ) : (
             <HumanChat key={index} content={message.content} />

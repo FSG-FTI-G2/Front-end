@@ -47,6 +47,7 @@ interface FileData {
   thumbnail: string | null;
   created_at: string;
   updated_at: string;
+  contents: Map<string, string>;
 }
 
 interface DisplayedFile {
@@ -75,9 +76,15 @@ interface LLMConfigData {
 
 // Chat Object
 
+interface CitationData {
+  document?: string;
+  chunk?: string;
+}
+
 interface MessageData {
   type: string;
   content: string;
+  additional_kwargs: Record<"citation", Record<string, CitationData>>;
 }
 
 interface ChatData {
