@@ -1,8 +1,8 @@
 import {
   ActionIcon,
-  ActionIconGroup,
   Anchor,
   Button,
+  Center,
   Checkbox,
   Flex,
   Group,
@@ -12,6 +12,7 @@ import {
   Pagination,
   Popover,
   Radio,
+  Skeleton,
   Table,
   Title,
   Transition,
@@ -22,31 +23,46 @@ import { IoFilter, IoClose } from "react-icons/io5";
 import { FaTrash } from "react-icons/fa6";
 import { BiLike, BiSolidLike, BiDislike, BiSolidDislike } from "react-icons/bi";
 import useGlobalStore from "../../context/global";
+import Empty from "../../components/Empty";
+import { getFeedback } from "../../apis/feedback";
+import { useDebouncedValue } from "@mantine/hooks";
 
-const mockData = [
-  {
-    id: "123",
-    question: "What is your name?",
-    answer: "My name is John Doe",
-    documents: ["file1.pdf", "file2.pdf"],
-    evaluation: 0,
-  },
-  {
-    id: "456",
-    question: "What is your name?",
-    answer: "My name is John Doe",
-    documents: ["file1.pdf", "file2.pdf"],
-    evaluation: -1,
-  },
-];
+/**
+ * @param {{
+ * skeletons: number[]
+ * }} props
+ */
+const GetTableSkeleton = ({ skeletons = [] }) => {
+  const col = skeletons[0] || 5;
+  const row = skeletons[1] || 3;
+  return (
+    <>
+      {[...Array(row)].map((_, index) => (
+        <Table.Tr key={index}>
+          {[...Array(col)].map((_, index) => (
+            <Table.Td key={index}>
+              <Skeleton height={30} />
+            </Table.Td>
+          ))}
+        </Table.Tr>
+      ))}
+    </>
+  );
+};
 
 export default function FeedbackTable() {
   const setAppTitle = useGlobalStore((state) => state.setAppTitle);
+  const [loading, setLoading] = useState(true);
+  /** @type {[number[], (status: number[]) => void]} */
   const [evaluateStatusFilter, setEvaluateStatusFilter] = useState([]);
   const [sortFilter, setSortFilter] = useState("none");
   const [search, setSearch] = useState("");
+  const [searchDebounceValue] = useDebouncedValue(search, 500);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [rows, setRows] = useState(mockData);
+  /** @type {[FeedbackData[], (data: FeedbackData[]) => void]} */
+  const [rows, setRows] = useState([]);
+  const [totalPage, setTotalPage] = useState(0);
+  const [pageIndex, setPageIndex] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   const handleDeselected = useCallback(() => {
@@ -56,6 +72,34 @@ export default function FeedbackTable() {
   useEffect(() => {
     setAppTitle("Human Feedback");
   }, []);
+
+  useEffect(() => {
+    // Fetch feedback data
+    setLoading(true);
+    getFeedback({
+      pageSize,
+      pageIndex: pageIndex - 1,
+      search: searchDebounceValue,
+      evaluationStatus: evaluateStatusFilter,
+      sortBy: sortFilter,
+      onSuccess: (data) => {
+        console.log(data);
+        setRows(data.data);
+        setTotalPage(data.total_pages + 1);
+        setLoading(false);
+      },
+      onFail: (message) => {
+        console.error(message);
+        setLoading(false);
+      },
+    });
+  }, [
+    pageIndex,
+    pageSize,
+    searchDebounceValue,
+    evaluateStatusFilter,
+    sortFilter,
+  ]);
 
   const GetRows = useCallback(() => {
     return rows.map((row) => (
@@ -82,21 +126,21 @@ export default function FeedbackTable() {
           />
         </Table.Td>
         <Table.Td>
-          <Highlight highlight={search}>{row.question}</Highlight>
+          <Highlight highlight={searchDebounceValue}>{row.question}</Highlight>
         </Table.Td>
         <Table.Td>
-          <Highlight highlight={search}>{row.answer}</Highlight>
+          <Highlight highlight={searchDebounceValue}>{row.answer}</Highlight>
         </Table.Td>
         <Table.Td>
           <Flex wrap="wrap" gap="xs">
             {row.documents.map((document, index) => (
               <Anchor
                 key={index}
-                href={`/file/${document}`}
+                href={`/file/${document.document}?ref=${document.chunk}`}
                 target="_blank"
                 underline="hover"
               >
-                {document}
+                {index + 1}
               </Anchor>
             ))}
           </Flex>
@@ -113,7 +157,7 @@ export default function FeedbackTable() {
         </Table.Td>
       </Table.Tr>
     ));
-  }, [rows, selectedRows, search, pageSize]);
+  }, [rows, selectedRows, searchDebounceValue, pageSize]);
 
   return (
     <Flex direction="column" h="100%">
@@ -123,6 +167,8 @@ export default function FeedbackTable() {
             placeholder="Search"
             leftSection={<IoIosSearch />}
             radius="xl"
+            value={search}
+            onChange={(event) => setSearch(event.currentTarget.value)}
           />
 
           <Popover shadow="md" width={200} position="bottom" radius="md">
@@ -148,9 +194,9 @@ export default function FeedbackTable() {
                   onChange={setEvaluateStatusFilter}
                 >
                   <Flex direction="column" gap={10}>
-                    <Checkbox label="Good" value="good" radius="md" />
-                    <Checkbox label="Bad" value="bad" radius="md" />
-                    <Checkbox label="Unset" value="unset" radius="md" />
+                    <Checkbox label="Good" value="1" radius="md" />
+                    <Checkbox label="Bad" value="-1" radius="md" />
+                    <Checkbox label="Unset" value="0" radius="md" />
                   </Flex>
                 </Checkbox.Group>
                 <Title order={6}>Sort</Title>
@@ -205,7 +251,7 @@ export default function FeedbackTable() {
               <Table.Th>
                 <Checkbox
                   radius="md"
-                  checked={selectedRows.length === rows.length}
+                  checked={selectedRows.length === rows.length && rows.length}
                   indeterminate={
                     selectedRows.length > 0 && selectedRows.length < rows.length
                   }
@@ -225,7 +271,19 @@ export default function FeedbackTable() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            <GetRows />
+            {loading ? (
+              <GetTableSkeleton />
+            ) : rows.length ? (
+              <GetRows />
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={5}>
+                  <Center>
+                    <Empty text="No message has been sent" />
+                  </Center>
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
@@ -233,9 +291,20 @@ export default function FeedbackTable() {
       <Flex p="md" justify="space-between">
         <Flex align="center" gap="sm">
           <Title order={5}>Rows per page</Title>
-          <NumberInput defaultValue={10} min={1} max={100} radius="md" />
+          <NumberInput
+            min={1}
+            max={100}
+            radius="md"
+            value={pageSize}
+            onChange={(value) => setPageSize(value)}
+          />
         </Flex>
-        <Pagination.Root total={10} radius="md">
+        <Pagination.Root
+          total={totalPage}
+          radius="md"
+          value={pageIndex}
+          onChange={(value) => setPageIndex(value)}
+        >
           <Group gap={5} justify="center">
             <Pagination.First />
             <Pagination.Previous />

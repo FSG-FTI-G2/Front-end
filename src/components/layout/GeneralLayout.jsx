@@ -110,7 +110,7 @@ export default function GeneralLayout() {
         </Flex>
       </Flex>
       <Flex p={10} gap={10} flex={1} h="calc(100% - 74px)">
-        {!user ? (
+        {user ? (
           <Outlet />
         ) : (
           <Center h="100%" w="100vw">

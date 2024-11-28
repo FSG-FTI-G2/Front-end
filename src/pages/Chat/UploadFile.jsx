@@ -306,12 +306,6 @@ export default function UploadFileSection() {
       getGoogleUserInfo({
         accessToken,
         onSuccess: (data) => setGoogleUser(data),
-        onFail: (message) =>
-          notifications.show({
-            title: "Error",
-            message: message,
-            color: "red",
-          }),
       });
     }
   }, []);

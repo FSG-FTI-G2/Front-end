@@ -21,6 +21,7 @@ export const apiUrls = {
   files: "/api/v1/files/",
   llm: "/api/v1/llm/",
   chat: "/api/v1/chat/",
+  feedback: "/api/v1/feedback/",
 };
 
 export const appColors = {
