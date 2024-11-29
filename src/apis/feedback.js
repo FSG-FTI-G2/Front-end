@@ -36,3 +36,48 @@ export async function getFeedback({
     onFail(response.message);
   }
 }
+
+/**
+ * @param {{
+ * feedbackIds: string[],
+ * evaluationStatus: number,
+ * onSuccess: (message: string) => void,
+ * onFail: (message: string) => void
+ * }} props
+ */
+export async function updateFeedbackStatus({
+  feedbackIds,
+  evaluationStatus,
+  onSuccess,
+  onFail,
+}) {
+  const body = {
+    feedback_records_id: feedbackIds,
+    evaluation: evaluationStatus,
+  };
+  const response = await apiHelper.post(apiUrls.feedback, body);
+  if (response.code === 200) {
+    onSuccess(response.message);
+  } else {
+    onFail(response.message);
+  }
+}
+
+/**
+ * @param {{
+ * feedbackIds: string[],
+ * onSuccess: (message: string) => void,
+ * onFail: (message: string) => void
+ * }} props
+ */
+export async function deleteFeedback({ feedbackIds, onSuccess, onFail }) {
+  const body = {
+    feedback_records_id: feedbackIds,
+  };
+  const response = await apiHelper.put(apiUrls.feedback, body);
+  if (response.code === 200) {
+    onSuccess(response.message);
+  } else {
+    onFail(response.message);
+  }
+}

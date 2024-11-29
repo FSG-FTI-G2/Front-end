@@ -24,8 +24,13 @@ import { FaTrash } from "react-icons/fa6";
 import { BiLike, BiSolidLike, BiDislike, BiSolidDislike } from "react-icons/bi";
 import useGlobalStore from "../../context/global";
 import Empty from "../../components/Empty";
-import { getFeedback } from "../../apis/feedback";
+import {
+  deleteFeedback,
+  getFeedback,
+  updateFeedbackStatus,
+} from "../../apis/feedback";
 import { useDebouncedValue } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 
 /**
  * @param {{
@@ -58,6 +63,7 @@ export default function FeedbackTable() {
   const [sortFilter, setSortFilter] = useState("none");
   const [search, setSearch] = useState("");
   const [searchDebounceValue] = useDebouncedValue(search, 500);
+  /** @type {[string[], (rows: string[]) => void]} */
   const [selectedRows, setSelectedRows] = useState([]);
   /** @type {[FeedbackData[], (data: FeedbackData[]) => void]} */
   const [rows, setRows] = useState([]);
@@ -69,13 +75,9 @@ export default function FeedbackTable() {
     setSelectedRows([]);
   }, []);
 
-  useEffect(() => {
-    setAppTitle("Human Feedback");
-  }, []);
-
-  useEffect(() => {
-    // Fetch feedback data
+  const handleGetFeedback = useCallback(() => {
     setLoading(true);
+    // Fetch feedback data
     getFeedback({
       pageSize,
       pageIndex: pageIndex - 1,
@@ -83,7 +85,6 @@ export default function FeedbackTable() {
       evaluationStatus: evaluateStatusFilter,
       sortBy: sortFilter,
       onSuccess: (data) => {
-        console.log(data);
         setRows(data.data);
         setTotalPage(data.total_pages + 1);
         setLoading(false);
@@ -93,6 +94,77 @@ export default function FeedbackTable() {
         setLoading(false);
       },
     });
+  }, [
+    pageIndex,
+    pageSize,
+    searchDebounceValue,
+    evaluateStatusFilter,
+    sortFilter,
+  ]);
+
+  const handleUpdateEvaluationFeedback = useCallback(
+    /**
+     * @param {string} feedbackId
+     * @param {number} status
+     */
+    (feedbackId, status) => {
+      let ids = [feedbackId];
+      if (selectedRows.length !== 0 && selectedRows.includes(feedbackId)) {
+        ids = selectedRows;
+      }
+      updateFeedbackStatus({
+        feedbackIds: ids,
+        evaluationStatus: status,
+        onSuccess: (message) => {
+          handleGetFeedback();
+          notifications.show({
+            title: "Success",
+            message,
+            color: "green",
+          });
+        },
+        onFail: (message) => {
+          notifications.show({
+            title: "Error",
+            message,
+            color: "red",
+          });
+        },
+      });
+    },
+    [selectedRows, handleGetFeedback]
+  );
+
+  const handleDeleteSelectedRows = useCallback(() => {
+    deleteFeedback({
+      feedbackIds: selectedRows,
+      onSuccess: () => {
+        setSelectedRows([]);
+        handleGetFeedback();
+        notifications.show({
+          title: "Success",
+          message: "Feedback has been deleted",
+          color: "green",
+        });
+      },
+      onFail: (message) => {
+        notifications.show({
+          title: "Error",
+          message,
+          color: "red",
+        });
+      },
+    });
+  }, [selectedRows, handleGetFeedback]);
+
+  // Set app title
+  useEffect(() => {
+    setAppTitle("Human Feedback");
+  }, []);
+
+  // Fetch feedback data
+  useEffect(() => {
+    handleGetFeedback();
   }, [
     pageIndex,
     pageSize,
@@ -147,10 +219,22 @@ export default function FeedbackTable() {
         </Table.Td>
         <Table.Td>
           <ActionIcon.Group>
-            <ActionIcon variant="subtle" radius="md" size="lg" color="gray">
+            <ActionIcon
+              variant="subtle"
+              radius="md"
+              size="lg"
+              color="gray"
+              onClick={() => handleUpdateEvaluationFeedback(row.id, 1)}
+            >
               {row.evaluation === 1 ? <BiSolidLike /> : <BiLike />}
             </ActionIcon>
-            <ActionIcon variant="subtle" radius="md" size="lg" color="gray">
+            <ActionIcon
+              variant="subtle"
+              radius="md"
+              size="lg"
+              color="gray"
+              onClick={() => handleUpdateEvaluationFeedback(row.id, -1)}
+            >
               {row.evaluation === -1 ? <BiSolidDislike /> : <BiDislike />}
             </ActionIcon>
           </ActionIcon.Group>
@@ -226,7 +310,13 @@ export default function FeedbackTable() {
                 <Title order={5} pr="md">
                   {selectedRows.length} selected
                 </Title>
-                <ActionIcon variant="subtle" color="red" size="lg" radius="md">
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  size="lg"
+                  radius="md"
+                  onClick={handleDeleteSelectedRows}
+                >
                   <FaTrash />
                 </ActionIcon>
                 <ActionIcon
