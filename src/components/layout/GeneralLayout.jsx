@@ -113,7 +113,7 @@ export default function GeneralLayout() {
         {user ? (
           <Outlet />
         ) : (
-          <Center h="100vh" w="100vw">
+          <Center h="100%" w="100vw">
             <Loader />
           </Center>
         )}

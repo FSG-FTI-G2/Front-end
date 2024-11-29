@@ -89,6 +89,7 @@ function GetSkeletonFiles() {
 
 export default function UploadFileSection() {
   const navigator = useNavigate();
+  const setAppTitle = useGlobalStore((state) => state.setAppTitle);
   // Files State
   const [fileLoading, setFileLoading] = useState(false);
   const files = useGlobalStore((state) => state.files);
@@ -299,17 +300,12 @@ export default function UploadFileSection() {
 
   // Try to get google user data if access token is available
   useEffect(() => {
+    setAppTitle("Chat with AI");
     const accessToken = getGoogleAccessToken();
     if (accessToken) {
       getGoogleUserInfo({
         accessToken,
         onSuccess: (data) => setGoogleUser(data),
-        onFail: (message) =>
-          notifications.show({
-            title: "Error",
-            message: message,
-            color: "red",
-          }),
       });
     }
   }, []);

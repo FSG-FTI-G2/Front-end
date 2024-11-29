@@ -3,10 +3,12 @@ import Section from "../components/layout/Section";
 // Icons
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { FaBrain } from "react-icons/fa";
-import LoginLayout from "../pages/loginPage";
-import UploadFileSection from "../pages/chatPage/UploadFile";
-import FilePreview from "../pages/files/Preview";
-import ChatBoxSection from "../pages/chatPage/ChatBox";
+import { CiViewTable } from "react-icons/ci";
+import LoginLayout from "../pages/Login";
+import UploadFileSection from "../pages/Chat/UploadFile";
+import FilePreview from "../pages/File/Preview";
+import ChatBoxSection from "../pages/Chat/ChatBox";
+import FeedbackTable from "../pages/Feedback/FeedbackTable";
 
 export const routes = [
   {
@@ -35,6 +37,16 @@ export const routes = [
         ),
         label: "Chat with AI",
         icon: <IoChatboxEllipsesOutline />,
+      },
+      {
+        path: "/dashboard/human-feedback",
+        element: (
+          <Section>
+            <FeedbackTable />
+          </Section>
+        ),
+        label: "Human Feeback",
+        icon: <CiViewTable />,
       },
       {
         path: "/dashboard/fine-tune",

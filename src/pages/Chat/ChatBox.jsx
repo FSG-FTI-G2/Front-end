@@ -302,9 +302,17 @@ export default function ChatBoxSection() {
     <Flex direction="column" h="100%">
       <Flex p="md" justify="space-between">
         <Burger size="sm" opened={opened} onClick={toggle} />
-        <Title order={4}>
+        <Text
+          size="lg"
+          fw={600}
+          truncate="end"
+          w={400}
+          style={{
+            textAlign: "center",
+          }}
+        >
           {opened ? "History" : chats[currentChatIndex]?.title}
-        </Title>
+        </Text>
         {!opened ? (
           <Button
             variant={selectedModel ? "filled" : "outline"}

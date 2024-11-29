@@ -48,14 +48,6 @@ export default function AssistantChat({
     [files]
   );
 
-  const handleOpenRef = useCallback(
-    /** @type {(citation: CitationData) => void} */
-    (citation) => {
-      window.open(`/file/${citation.document}?ref=${citation.chunk}`, "_blank");
-    },
-    []
-  );
-
   useEffect(() => {
     // If isSpawnToken is false, process and display the full content immediately
     if (!isSpawnToken) {
@@ -105,7 +97,11 @@ export default function AssistantChat({
                   </Badge>
                 }
               >
-                <Anchor onClick={() => handleOpenRef(citations[citeKey])}>
+                <Anchor
+                  href={`/file/${citations[citeKey].document}?ref=${citations[citeKey].chunk}`}
+                  target="_blank"
+                  underline="hover"
+                >
                   {getDocumentByCitation(citations[citeKey].document)?.fileName}
                 </Anchor>
               </List.Item>

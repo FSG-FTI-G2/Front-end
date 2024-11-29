@@ -132,3 +132,18 @@ interface GoogleUserData {
   picture: string;
   verified_email: boolean;
 }
+
+// Feedback Object
+
+interface FeedbackData {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  message_id: string;
+  message_index: number;
+  question: string;
+  answer: string;
+  documents: CitationData[];
+  evaluation: number;
+}
