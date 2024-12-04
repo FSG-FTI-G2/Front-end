@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { Chatbot } from "../../../Robot_playground"; // Thay bằng đường dẫn đến Chatbot của bạn
+import { Chatbot } from "./Robot_playground"; // Thay bằng đường dẫn đến Chatbot của bạn
 
 // Hàm tính toán vị trí đồng đều trên hình cầu
 const generateSpherePositions = (count, radius) => {
