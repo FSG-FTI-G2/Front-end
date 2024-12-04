@@ -1,99 +1,146 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { animated, useSpring } from "@react-spring/three";
-import { Text, Environment, Sky,  } from "@react-three/drei";
-import { Chatbot } from "../../../Robot_playground";
-// import Background from "../landingPage/background"
+import { Text } from "@react-three/drei";
+import { Chatbot } from "../../../Robot_playground"; // Thay bằng đường dẫn đến Chatbot của bạn
 
-// Hàm tạo giá trị ngẫu nhiên trong khoảng
-const randomInRange = (min, max) => Math.random() * (max - min) + min;
+// Hàm tính toán vị trí đồng đều trên hình cầu
+const generateSpherePositions = (count, radius) => {
+  const positions = [];
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // Góc vàng để phân bố đều
 
-function TornadoScene() {
+  for (let i = 0; i < count; i++) {
+    const y = 1 - (i / (count - 1)) * 2; // Giá trị y từ -1 đến 1
+    const radiusAtY = Math.sqrt(1 - y * y) * radius; // Bán kính tại mỗi y
+    const theta = i * goldenAngle; // Góc xoay
+
+    positions.push([
+      Math.cos(theta) * radiusAtY, // X
+      y * radius,                  // Y
+      Math.sin(theta) * radiusAtY, // Z
+    ]);
+  }
+
+  return positions;
+};
+
+// Tornado Scene
+function TornadoScene({ onTextClick }) {
   const texts = ["Hello", "React", "Three.js", "Fiber", "Animation", "Helloworld"];
+  const positions = generateSpherePositions(texts.length, 8); // Bán kính 6 đơn vị
   const groupRef = useRef();
-  const [visibleTexts, setVisibleTexts] = useState(texts.map(() => true)); // Trạng thái hiển thị của từng text
 
-  // Animation cho mỗi text
-  const springs = texts.map((_, i) =>
-    useSpring({
-      from: {
-        position: [
-          randomInRange(-5, 5), // Vị trí ngẫu nhiên ban đầu
-          randomInRange(0, 10),    // Vị trí ngẫu nhiên trên trục Y
-          randomInRange(-5, 5),  // Vị trí ngẫu nhiên trên trục Z
-        ],
-        scale: [25,25,25],  // Kích thước ban đầu
-        opacity: 1,        // Hiển thị rõ ràng
-      },
-      to: async (next) => {
-        // Di chuyển qua lại ngẫu nhiên
-        await next({
-          position: [
-            randomInRange(-5, 5),
-            randomInRange(0, 10),
-            randomInRange(-5, 5),
-          ],
-          opacity: 1,
-          scale: [1, 1, 1],
-        });
-        await new Promise((resolve) => setTimeout(resolve, 5000)); // Dừng 5 giây cho user đọc
-
-        // Cuốn vào tornado (di chuyển vào trung tâm)
-        await next({
-          position: [0, -7, 0],  // Di chuyển vào trung tâm
-          scale: [0.3, 0.3, 0.3], // Thu nhỏ text
-          opacity: 0, // Mờ dần
-        });
-
-        // Ẩn text sau khi hoàn tất
-        setVisibleTexts((prev) => {
-          const updated = [...prev];
-          updated[i] = false; // Ẩn text khi hoàn tất
-          return updated;
-        });
-      },
-      config: { tension: 120, friction: 20 },
-    })
-  );
-
-  // Quay group để tạo hiệu ứng "vòi rồng"
+  // Quay nhóm để tạo hiệu ứng chuyển động
   useFrame(({ clock }) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = clock.getElapsedTime() * 2; // Quay group để tạo hiệu ứng vòi rồng
+      groupRef.current.rotation.y = clock.getElapsedTime() * 0.5; // Quay chậm
     }
   });
 
   return (
     <group ref={groupRef}>
-      {texts.map((text, i) =>
-        visibleTexts[i] ? ( // Chỉ render text nếu nó chưa biến mất
-          <animated.group key={i} position={springs[i].position} scale={springs[i].scale}>
-            <animated.mesh>
-              <Text fontSize={1} color="black" opacity={springs[i].opacity}>
-                {text}
-              </Text>
-            </animated.mesh>
-          </animated.group>
-        ) : null
-      )}
+      {texts.map((text, i) => (
+        <group
+          key={i}
+          position={positions[i]}
+          onClick={() => onTextClick(text)} // Sự kiện click
+        >
+          <mesh>
+            <Text
+              fontSize={1}
+              color="white"
+              outlineWidth={0.05}
+              outlineColor="black"
+              anchorX="center"
+              anchorY="middle"
+            >
+              {text}
+            </Text>
+          </mesh>
+        </group>
+      ))}
       {/* Vật thể trung tâm */}
-      <group position={[0, -7, 0]}>
+      <group position={[0, -3, 0]}>
         <Chatbot scale={[3, 3, 3]} /> {/* Sử dụng vật thể từ Chatbot */}
       </group>
     </group>
   );
 }
 
+// Tornado Effect
 export default function TornadoEffect() {
-    return (
+  // Hàm xử lý click vào text
+  const onTextClick = (text) => {
+    const element = document.getElementById(text); // Tìm phần tử với ID tương ứng
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" }); // Cuộn đến phần tử
+    }
+  };
+
+  // Refresh lại trang
+  const refreshPage = () => {
+    window.location.reload();
+  };
+
+  return (
+    <div
+      style={{
+        background: "linear-gradient(135deg, #74ebd5, #ACB6E5)",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
+      {/* Nút refresh */}
+      <button
+        onClick={refreshPage}
+        style={{
+          position: "absolute",
+          top: "20px",
+          left: "20px",
+          padding: "10px 20px",
+          backgroundColor: "#ffffff",
+          color: "#333",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+        }}
+      >
+        Refresh
+      </button>
+
+      {/* Canvas Tornado */}
       <Canvas camera={{ position: [0, 0, 15] }}>
-        
         <ambientLight intensity={1} />
         <directionalLight position={[10, 10, 5]} />
-        <TornadoScene />
-        {/* <Sky sunPosition={[100, 20, 100]} /> */}
-        {/* <Environment files="P:\FA24\Dev\Front-end\public\models\749-hdri-skies-com.hdr" background /> */}
-        {/* <Environment preset="apartment" background /> */}
-     </Canvas>
-    );
-  }
+        <TornadoScene onTextClick={onTextClick} />
+      </Canvas>
+
+      {/* Sections trên trang */}
+      <div id="Hello" style={{ height: "100vh", backgroundColor: "rgba(255,255,255,0.9)" }}>
+        <h1 style={{ textAlign: "center", padding: "50px" }}>Hello</h1>
+        <p style={{ textAlign: "center" }}>This is the Hello section.</p>
+      </div>
+      <div id="React" style={{ height: "100vh", backgroundColor: "rgba(240,240,240,0.9)" }}>
+        <h1 style={{ textAlign: "center", padding: "50px" }}>React</h1>
+        <p style={{ textAlign: "center" }}>This is the React section.</p>
+      </div>
+      <div id="Three.js" style={{ height: "100vh", backgroundColor: "rgba(230,230,230,0.9)" }}>
+        <h1 style={{ textAlign: "center", padding: "50px" }}>Three.js</h1>
+        <p style={{ textAlign: "center" }}>This is the Three.js section.</p>
+      </div>
+      <div id="Fiber" style={{ height: "100vh", backgroundColor: "rgba(220,220,220,0.9)" }}>
+        <h1 style={{ textAlign: "center", padding: "50px" }}>Fiber</h1>
+        <p style={{ textAlign: "center" }}>This is the Fiber section.</p>
+      </div>
+      <div id="Animation" style={{ height: "100vh", backgroundColor: "rgba(210,210,210,0.9)" }}>
+        <h1 style={{ textAlign: "center", padding: "50px" }}>Animation</h1>
+        <p style={{ textAlign: "center" }}>This is the Animation section.</p>
+      </div>
+      <div id="Helloworld" style={{ height: "100vh", backgroundColor: "rgba(200,200,200,0.9)" }}>
+        <h1 style={{ textAlign: "center", padding: "50px" }}>Helloworld</h1>
+        <p style={{ textAlign: "center" }}>This is the Helloworld section.</p>
+      </div>
+    </div>
+  );
+}
