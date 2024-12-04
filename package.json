@@ -16,9 +16,14 @@
     "@mantine/hooks": "^7.13.1",
     "@mantine/notifications": "^7.13.1",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "@react-spring/three": "^9.7.5",
+    "@react-three/drei": "^9.119.0",
+    "@react-three/fiber": "^8.17.10",
+    "@types/three": "^0.170.0",
     "axios": "^1.7.7",
     "google-auth-library": "^9.14.2",
     "js-cookie": "^3.0.5",
+    "lamina": "^1.1.0",
     "react": "^18.3.1",
     "react-beforeunload": "^2.6.0",
     "react-dom": "^18.3.1",
@@ -27,6 +32,7 @@
     "react-markdown": "^9.0.1",
     "react-router-dom": "^6.26.2",
     "remark-gfm": "^4.0.0",
+    "three": "^0.171.0",
     "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
