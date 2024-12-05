@@ -9,9 +9,14 @@ Title: Sad toaster
 
 import React from 'react'
 import { useGLTF } from '@react-three/drei'
+import { useFBX } from '@tresjs/cientos'
 
 export function Chatbot(props) {
   const { nodes, materials } = useGLTF('./models/sad_toaster.glb')
+
+  const {animations: typingAnimation} = useFBX("P:\\FA24\\Dev\\Front-end\\public\\animations\\Typing.fbx");
+
+  console.log(typingAnimation);
   return (
     <group {...props} dispose={null}>
       <group rotation={[-Math.PI / 2, 0, 0]}>

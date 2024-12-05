@@ -1,7 +1,9 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { Chatbot } from "./Robot_playground"; // Thay bằng đường dẫn đến Chatbot của bạn
+import { Chatbot } from "./Robot_playground";
+import CanvasAnimation from "./Backgroundanimation";
+import { useNavigate } from "react-router-dom";
 
 // Hàm tính toán vị trí đồng đều trên hình cầu
 const generateSpherePositions = (count, radius) => {
@@ -25,7 +27,7 @@ const generateSpherePositions = (count, radius) => {
 
 // Tornado Scene
 function TornadoScene({ onTextClick }) {
-  const texts = ["Hello", "React", "Three.js", "Fiber", "Animation", "Helloworld"];
+  const texts = ["Hello", "React", "Helloworld"];
   const positions = generateSpherePositions(texts.length, 8); // Bán kính 6 đơn vị
   const groupRef = useRef();
 
@@ -68,45 +70,92 @@ function TornadoScene({ onTextClick }) {
 
 // Tornado Effect
 export default function TornadoEffect() {
-  // Hàm xử lý click vào text
+  const navigate = useNavigate();
+  const [showBackup, setShowBackup] = useState(false); // Trạng thái hiển thị nút Backup
+
   const onTextClick = (text) => {
-    const element = document.getElementById(text); // Tìm phần tử với ID tương ứng
+    setShowBackup(true); // Hiển thị nút Backup khi nhấp vào văn bản
+    const element = document.getElementById(text);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" }); // Cuộn đến phần tử
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
-  // Refresh lại trang
-  const refreshPage = () => {
+  const BackupPage = () => {
     window.location.reload();
   };
 
+  // Function to handle login button click
+  const handleLoginClick = () => {
+    navigate("/login"); // Navigate to the login page
+  };
+
+  const center = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    height: "100vh",
+    color: "blue",
+    fontSize: 40
+  };
+  
+  const section1 = useRef();
+  const section2 = useRef();
+  const section3 = useRef();
+  const section4 = useRef();
+
+  const scrollHandler = (elmRef) => {
+    console.log(elmRef.current);
+    window.scrollTo({ top: elmRef.current.offsetTop, behavior: "smooth" });
+  };
+
   return (
-    <div
-      style={{
-        background: "linear-gradient(135deg, #74ebd5, #ACB6E5)",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      {/* Nút refresh */}
+    <div style={{ height: "100vh", overflow: "hidden" }}>
+      {/* Background Animation */}
+      <CanvasAnimation />
+
+      {/* BackupPage button */}
+      {showBackup && (
+        <button
+          onClick={BackupPage}
+          style={{
+            position: "absolute",
+            top: "20px",
+            left: "20px",
+            padding: "10px 20px",
+            backgroundColor: "#aed581",
+            color: "#333",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            fontWeight: "bold",
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          Backup
+        </button>
+      )}
+
+      {/* Login Button */}
       <button
-        onClick={refreshPage}
+        onClick={handleLoginClick}
         style={{
           position: "absolute",
           top: "20px",
-          left: "20px",
+          right: "20px",
           padding: "10px 20px",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#aed581",
           color: "#333",
           border: "none",
           borderRadius: "5px",
           cursor: "pointer",
           fontWeight: "bold",
           boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+          zIndex: 1000,
         }}
       >
-        Refresh
+        Login
       </button>
 
       {/* Canvas Tornado */}
@@ -116,31 +165,43 @@ export default function TornadoEffect() {
         <TornadoScene onTextClick={onTextClick} />
       </Canvas>
 
-      {/* Sections trên trang */}
-      <div id="Hello" style={{ height: "100vh", backgroundColor: "rgba(255,255,255,0.9)" }}>
+
+      {/* Các phần nội dung cuộn */}
+      <div id="Hello" style={{ height:"100vh", backgroundColor: "rgba(255,255,255,0.9)", overflow:"scroll" }}>
         <h1 style={{ textAlign: "center", padding: "50px" }}>Hello</h1>
         <p style={{ textAlign: "center" }}>This is the Hello section.</p>
       </div>
-      <div id="React" style={{ height: "100vh", backgroundColor: "rgba(240,240,240,0.9)" }}>
+      <div id="React" style={{ height: "100vh", backgroundColor: "rgba(240,240,240,0.9)", overflow:"scroll" }}>
         <h1 style={{ textAlign: "center", padding: "50px" }}>React</h1>
         <p style={{ textAlign: "center" }}>This is the React section.</p>
       </div>
-      <div id="Three.js" style={{ height: "100vh", backgroundColor: "rgba(230,230,230,0.9)" }}>
-        <h1 style={{ textAlign: "center", padding: "50px" }}>Three.js</h1>
-        <p style={{ textAlign: "center" }}>This is the Three.js section.</p>
-      </div>
-      <div id="Fiber" style={{ height: "100vh", backgroundColor: "rgba(220,220,220,0.9)" }}>
-        <h1 style={{ textAlign: "center", padding: "50px" }}>Fiber</h1>
-        <p style={{ textAlign: "center" }}>This is the Fiber section.</p>
-      </div>
-      <div id="Animation" style={{ height: "100vh", backgroundColor: "rgba(210,210,210,0.9)" }}>
-        <h1 style={{ textAlign: "center", padding: "50px" }}>Animation</h1>
-        <p style={{ textAlign: "center" }}>This is the Animation section.</p>
-      </div>
-      <div id="Helloworld" style={{ height: "100vh", backgroundColor: "rgba(200,200,200,0.9)" }}>
+      <div id="Helloworld" style={{ height: "100vh", backgroundColor: "rgba(200,200,200,0.9)", overflow:"scroll" }}>
         <h1 style={{ textAlign: "center", padding: "50px" }}>Helloworld</h1>
         <p style={{ textAlign: "center" }}>This is the Helloworld section.</p>
       </div>
     </div>
   );
 }
+
+
+// import React from "react";
+// import { Canvas } from "@react-three/fiber";
+// import { OrbitControls } from "@react-three/drei"; // Import OrbitControls
+// import Chatbot from "../LandingPage/model.jsx";
+
+// export default function TornadoEffect() {
+//   return (
+//     <Canvas
+//       camera={{ position: [0, 1, 10], fov: 45 }}
+//       style={{ height: "100vh", background: "lightblue" }}
+//     >
+//       <ambientLight intensity={0.5} />
+//       <directionalLight position={[10, 10, 5]} intensity={1} />
+
+//       <Chatbot scale={[3, 3, 3]} position={[0, 0, 0]} />
+
+//       {/* Add OrbitControls here */}
+//       <OrbitControls />
+//     </Canvas>
+//   );
+// }

@@ -19,6 +19,7 @@
     "@react-spring/three": "^9.7.5",
     "@react-three/drei": "^9.119.0",
     "@react-three/fiber": "^8.17.10",
+    "@tresjs/cientos": "^4.0.3",
     "@types/three": "^0.170.0",
     "axios": "^1.7.7",
     "google-auth-library": "^9.14.2",

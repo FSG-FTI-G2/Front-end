@@ -7,17 +7,26 @@ Source: https://sketchfab.com/3d-models/robot-playground-59fc99d8dcb146f3a6c16db
 Title: Robot Playground
 */
 
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useGraph } from '@react-three/fiber'
-import { useGLTF, useAnimations } from '@react-three/drei'
+import { useAnimations, useGLTF, useFBX } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 
 export function Chatbot(props) {
   const group = React.useRef()
-  const { scene, animations } = useGLTF('./models/robot_playground.glb')
+  const { scene } = useGLTF('./models/robot_playground.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone)
-  const { actions } = useAnimations(animations, group)
+  const { animations: PointingAnimation } = useFBX("./animations/Pointing.fbx")
+
+  PointingAnimation[0].name = "Pointing";
+
+  const { actions } = useAnimations(PointingAnimation, group);
+
+  useEffect(() => {
+    actions['Pointing'].reset().play()
+  }, []);
+  
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Sketchfab_Scene">
