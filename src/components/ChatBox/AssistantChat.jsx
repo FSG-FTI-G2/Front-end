@@ -35,7 +35,7 @@ export default function AssistantChat({
   // Function to detect citations and replace with numbers
   const processCitations = useCallback((text) => {
     const transformedContent = text.replace(/\[(.*?)\]/g, (match, p) => {
-      return `**${match}**`; // Replace with a numbered citation
+      return ` **${match}**`; // Replace with a numbered citation
     });
     return transformedContent;
   }, []);

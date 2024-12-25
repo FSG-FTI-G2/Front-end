@@ -1,8 +1,33 @@
-# React + Vite
+# FinTech Bot Document Retrieval
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### 🚀 How to run
 
-Currently, two official plugins are available:
+#### On development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Install NodeJS
+
+- Install node dependencies
+
+```sh
+npm install
+```
+
+- Start development server
+
+```sh
+npm run dev
+```
+
+#### On production
+
+- Build Docker image
+
+```sh
+docker build -t chatbot-fe .
+```
+
+- Run Docker container
+
+```sh
+docker run --name chatbot-fe -d --rm -p 80:80 chatbot-fe
+```

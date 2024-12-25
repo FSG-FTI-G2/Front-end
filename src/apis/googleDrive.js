@@ -62,6 +62,7 @@ export const removeGoogleAccessToken = () => {
  * }} props
  */
 export const getGoogleUserInfo = async ({ accessToken, onSuccess, onFail }) => {
+  console.log("accessToken", accessToken);
   try {
     /** @type {import("axios").AxiosResponse<GoogleUserData>} */
     const response = await axios.get(

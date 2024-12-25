@@ -1,8 +1,19 @@
 import * as style from "./styles.js";
 import imageBanner from "../../assets/images/loginImage.jpg";
-import { Button, Flex, PasswordInput, TextInput, Title } from "@mantine/core";
+import appLogo from "../../assets/images/appLogo.png";
+import {
+  Anchor,
+  Button,
+  Flex,
+  Group,
+  Image,
+  PasswordInput,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { useEffect, useState } from "react";
-import { login, logout } from "../../apis/auth.js";
+import { login } from "../../apis/auth.js";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
@@ -28,6 +39,16 @@ export default function LoginLayout() {
     <Flex style={style.wrapperStyle}>
       <Flex style={style.containerStyle}>
         <Flex direction="column" style={style.formStyle} gap={20}>
+          <Image
+            src={appLogo}
+            alt="logo"
+            style={{
+              userSelect: "none",
+              width: 150,
+              objectFit: "contain",
+            }}
+            draggable={false}
+          />
           <Flex direction="column">
             <Title order={2}>Welcome</Title>
             AI powered your document
@@ -64,6 +85,7 @@ export default function LoginLayout() {
               placeholder="Username"
               key={form.key("username")}
               {...form.getInputProps("username")}
+              radius="md"
             />
             <PasswordInput
               withAsterisk
@@ -71,15 +93,28 @@ export default function LoginLayout() {
               placeholder="Password"
               key={form.key("password")}
               {...form.getInputProps("password")}
+              radius="md"
             />
-            <Button type="submit" loading={isButtonLoading}>
+            <Flex justify="space-between">
+              <Anchor size="sm">Forgot password</Anchor>
+              <Group gap="xs">
+                <Text size="sm">Don't have an account?</Text>
+                <Anchor size="sm">Register</Anchor>
+              </Group>
+            </Flex>
+            <Button type="submit" loading={isButtonLoading} radius="md">
               Login
             </Button>
           </form>
         </Flex>
       </Flex>
       <Flex style={style.containerStyle}>
-        <img src={imageBanner} alt="login" style={style.imageStyle} />
+        <img
+          src={imageBanner}
+          alt="login"
+          style={style.imageStyle}
+          draggable={false}
+        />
       </Flex>
     </Flex>
   );
