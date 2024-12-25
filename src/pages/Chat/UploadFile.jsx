@@ -306,6 +306,12 @@ export default function UploadFileSection() {
       getGoogleUserInfo({
         accessToken,
         onSuccess: (data) => setGoogleUser(data),
+        onFail: (message) =>
+          notifications.show({
+            title: "Error",
+            message: message,
+            color: "red",
+          }),
       });
     }
   }, []);
@@ -315,7 +321,7 @@ export default function UploadFileSection() {
       <Flex p="md" justify="space-between">
         <Menu shadow="md" width={300} position="bottom-start" keepMounted>
           <Menu.Target>
-            <Button radius="xl" leftSection={<IoMdAdd />} color="gray">
+            <Button radius="xl" leftSection={<IoMdAdd />}>
               New
             </Button>
           </Menu.Target>

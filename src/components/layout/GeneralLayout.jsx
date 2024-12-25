@@ -9,6 +9,7 @@ import {
   Title,
   Loader,
   Center,
+  Image,
 } from "@mantine/core";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { containerStyle } from "../styles/containerStyle";
@@ -19,6 +20,7 @@ import { getCurrentUser, logout } from "../../apis/auth";
 import useGlobalStore from "../../context/global";
 import { useEffect } from "react";
 import { IoIosLogOut } from "react-icons/io";
+import appLogo from "../../assets/images/appLogo.png";
 
 export default function GeneralLayout() {
   const [opened, { toggle, close }] = useDisclosure();
@@ -93,6 +95,14 @@ export default function GeneralLayout() {
             radius="lg"
             opened={opened}
             onClose={close}
+            title={
+              <Image
+                src={appLogo}
+                alt="Logo"
+                style={{ userSelect: "none", height: 50, objectFit: "contain" }}
+                draggable={false}
+              />
+            }
           >
             {dashboardRoutes.map((route) => (
               <NavLink

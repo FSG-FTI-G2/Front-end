@@ -52,7 +52,17 @@ export const routes = [
         path: "/dashboard/fine-tune",
         element: (
           <Section>
-            <div>Fine Tune AI</div>
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              We are working on it
+            </div>
           </Section>
         ),
         label: "Fine-tune",

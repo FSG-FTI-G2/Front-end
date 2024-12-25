@@ -317,7 +317,6 @@ export default function ChatBoxSection() {
           <Button
             variant={selectedModel ? "filled" : "outline"}
             radius="xl"
-            color="gray"
             leftSection={<IoChevronDown />}
             onClick={toggleModal}
           >
