@@ -3,6 +3,7 @@ import Section from "../components/layout/Section";
 // Icons
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { FaBrain } from "react-icons/fa";
+import  TornadoEffect  from "../pages/landingPage/threejsLP"
 import { CiViewTable } from "react-icons/ci";
 import LoginLayout from "../pages/Login";
 import UploadFileSection from "../pages/Chat/UploadFile";
@@ -13,7 +14,7 @@ import FeedbackTable from "../pages/Feedback/FeedbackTable";
 export const routes = [
   {
     path: "/",
-    element: <div>Landing Page</div>,
+    element: <TornadoEffect/>,
   },
   {
     path: "/login",
